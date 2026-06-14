@@ -45,16 +45,18 @@ export async function apiClient<T>(
 
   if (!response.ok) {
     const data = await response.json().catch(() => null)
+    const apiMessage = (data as { message?: string } | null)?.message
 
     if (response.status === 401 && onUnauthorized) {
       onUnauthorized()
     }
 
-    throw new ApiError(
-      (data as { message?: string } | null)?.message ?? 'Erro na requisição',
-      response.status,
-      data,
-    )
+    const fallbackMessage =
+      response.status === 404
+        ? 'Recurso não encontrado na API. Publique a versão mais recente do backend.'
+        : `Erro na requisição (${response.status})`
+
+    throw new ApiError(apiMessage ?? fallbackMessage, response.status, data)
   }
 
   if (response.status === 204) {
