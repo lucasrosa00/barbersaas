@@ -1,0 +1,62 @@
+import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { appBasename } from '@/config/app'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { PublicRoute } from '@/components/auth/PublicRoute'
+import { MainLayout } from '@/components/layout/MainLayout'
+import { PublicLayout } from '@/layouts/PublicLayout'
+import { AgendaPage } from '@/pages/agenda/AgendaPage'
+import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
+import { LoginPage } from '@/pages/auth/LoginPage'
+import { BarbeirosPage } from '@/pages/barbeiros/BarbeirosPage'
+import { ClientesPage } from '@/pages/clientes/ClientesPage'
+import { ConfiguracoesPage } from '@/pages/configuracoes/ConfiguracoesPage'
+import { DashboardPage } from '@/pages/dashboard/DashboardPage'
+import { FinanceiroPage } from '@/pages/financeiro/FinanceiroPage'
+import { HistoricoPage } from '@/pages/historico/HistoricoPage'
+import { ListaEsperaPage } from '@/pages/lista-espera/ListaEsperaPage'
+import { ServicosPage } from '@/pages/servicos/ServicosPage'
+
+export const router = createBrowserRouter(
+  [
+  {
+    element: <PublicRoute />,
+    children: [
+      {
+        element: <PublicLayout />,
+        children: [
+          { path: '/login', element: <LoginPage /> },
+          { path: '/recuperar-senha', element: <ForgotPasswordPage /> },
+        ],
+      },
+    ],
+  },
+  {
+    element: <ProtectedRoute />,
+    children: [
+      {
+        element: <MainLayout />,
+        children: [
+          { path: '/dashboard', element: <DashboardPage /> },
+          { path: '/clientes', element: <ClientesPage /> },
+          { path: '/barbeiros', element: <BarbeirosPage /> },
+          { path: '/servicos', element: <ServicosPage /> },
+          { path: '/agenda', element: <AgendaPage /> },
+          { path: '/lista-espera', element: <ListaEsperaPage /> },
+          { path: '/historico', element: <HistoricoPage /> },
+          { path: '/financeiro', element: <FinanceiroPage /> },
+          { path: '/configuracoes', element: <ConfiguracoesPage /> },
+        ],
+      },
+    ],
+  },
+  {
+    path: '/',
+    element: <Navigate to="/dashboard" replace />,
+  },
+  {
+    path: '*',
+    element: <Navigate to="/dashboard" replace />,
+  },
+  ],
+  { basename: appBasename },
+)

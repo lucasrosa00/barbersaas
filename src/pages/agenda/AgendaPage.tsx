@@ -1,0 +1,228 @@
+import { useEffect, useMemo, useState } from 'react'
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
+import { AgendaGrid } from '@/components/agenda/AgendaGrid'
+import { AgendamentoFormModal } from '@/components/agenda/AgendamentoFormModal'
+import { Button } from '@/components/ui/Button'
+import { Select } from '@/components/ui/Select'
+import { useAuth } from '@/hooks/useAuth'
+import { useAgendamentos } from '@/hooks/useAgendamentos'
+import { useBarbeiros } from '@/hooks/useBarbeiros'
+import { useClientes } from '@/hooks/useClientes'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
+import { useServicos } from '@/hooks/useServicos'
+import type {
+  AgendamentoEnriquecido,
+  AgendamentoFormData,
+} from '@/types/agendamento'
+import { addDays, formatDateBR } from '@/utils/timeSlots'
+import {
+  AGENDAMENTO_STATUS,
+  getAgendaStatusLegendColor,
+} from '@/constants/agendamentoStatus'
+
+export function AgendaPage() {
+  const { user } = useAuth()
+  const empresaId = user?.empresaId ?? ''
+
+  const {
+    agendamentos,
+    todosAgendamentos,
+    selectedDate,
+    setSelectedDate,
+    isLoading,
+    createAgendamento,
+    updateAgendamento,
+    cancelAgendamento,
+  } = useAgendamentos(empresaId)
+
+  const { barbeiros } = useBarbeiros(empresaId)
+  const { clientes } = useClientes(empresaId)
+  const { servicos } = useServicos(empresaId)
+
+  const [formOpen, setFormOpen] = useState(false)
+  const [editingAgendamento, setEditingAgendamento] = useState<
+    AgendamentoEnriquecido | undefined
+  >()
+  const [prefilled, setPrefilled] = useState<Partial<AgendamentoFormData>>()
+  const [selectedBarbeiroId, setSelectedBarbeiroId] = useState('')
+
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
+
+  useEffect(() => {
+    if (barbeiros.length === 0) {
+      setSelectedBarbeiroId('')
+      return
+    }
+
+    const barbeiroValido = barbeiros.some((b) => b.id === selectedBarbeiroId)
+    if (!barbeiroValido) {
+      setSelectedBarbeiroId(barbeiros[0].id)
+    }
+  }, [barbeiros, selectedBarbeiroId])
+
+  const barbeirosVisiveis = useMemo(() => {
+    if (isDesktop) return barbeiros
+    if (!selectedBarbeiroId) return []
+    return barbeiros.filter((b) => b.id === selectedBarbeiroId)
+  }, [barbeiros, isDesktop, selectedBarbeiroId])
+
+  const barbeiroSelecionado = barbeiros.find((b) => b.id === selectedBarbeiroId)
+
+  function handleOpenCreate() {
+    setEditingAgendamento(undefined)
+    setPrefilled({
+      data: selectedDate,
+      horario: '09:00',
+      status: 'agendado',
+      ...(!isDesktop && selectedBarbeiroId
+        ? { barbeiroId: selectedBarbeiroId }
+        : {}),
+    })
+    setFormOpen(true)
+  }
+
+  function handleSlotClick(barbeiroId: string, horario: string) {
+    setEditingAgendamento(undefined)
+    setPrefilled({
+      barbeiroId,
+      horario,
+      data: selectedDate,
+      status: 'agendado',
+    })
+    setFormOpen(true)
+  }
+
+  function handleAgendamentoClick(agendamento: AgendamentoEnriquecido) {
+    setEditingAgendamento(agendamento)
+    setPrefilled(undefined)
+    setFormOpen(true)
+  }
+
+  function handleCloseForm() {
+    setFormOpen(false)
+    setEditingAgendamento(undefined)
+    setPrefilled(undefined)
+  }
+
+  async function handleSubmit(data: AgendamentoFormData) {
+    if (editingAgendamento) {
+      await updateAgendamento(editingAgendamento.id, data)
+    } else {
+      await createAgendamento(data)
+    }
+  }
+
+  async function handleCancelAgendamento() {
+    if (editingAgendamento) {
+      await cancelAgendamento(editingAgendamento.id)
+      handleCloseForm()
+    }
+  }
+
+  if (!user) return null
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex w-full items-center justify-between gap-2 rounded-xl border border-neutral-200 bg-white p-2 sm:w-auto sm:justify-start sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0">
+          <Button
+            variant="ghost"
+            className="shrink-0 px-2"
+            onClick={() => setSelectedDate(addDays(selectedDate, -1))}
+            aria-label="Dia anterior"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+
+          <div className="min-w-0 flex-1 text-center sm:flex-none">
+            <p className="truncate text-sm font-semibold text-neutral-900">
+              {formatDateBR(selectedDate)}
+            </p>
+            <p className="text-xs text-neutral-500">
+              {agendamentos.length}{' '}
+              {agendamentos.length === 1 ? 'agendamento' : 'agendamentos'}
+            </p>
+          </div>
+
+          <Button
+            variant="ghost"
+            className="shrink-0 px-2"
+            onClick={() => setSelectedDate(addDays(selectedDate, 1))}
+            aria-label="Próximo dia"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </Button>
+        </div>
+
+        <input
+          type="date"
+          value={selectedDate}
+          onChange={(e) => setSelectedDate(e.target.value)}
+          className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-400/50 sm:w-auto"
+        />
+
+        <Button onClick={handleOpenCreate} className="w-full sm:w-auto">
+          <Plus className="h-4 w-4" />
+          Novo Agendamento
+        </Button>
+      </div>
+
+      {!isDesktop && barbeiros.length > 0 && (
+        <div className="rounded-xl border border-neutral-200 bg-white p-4 lg:hidden">
+          <Select
+            label="Barbeiro"
+            value={selectedBarbeiroId}
+            onChange={(e) => setSelectedBarbeiroId(e.target.value)}
+            options={barbeiros.map((b) => ({
+              value: b.id,
+              label: `${b.nome} (${b.horarioInicio} — ${b.horarioFim})`,
+            }))}
+          />
+          {barbeiroSelecionado && (
+            <p className="mt-2 text-xs text-neutral-500">
+              Exibindo a agenda de {barbeiroSelecionado.nome}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Legenda de status */}
+      <div className="flex flex-wrap gap-3 text-xs">
+        {AGENDAMENTO_STATUS.map(({ value: status, label }) => (
+          <div key={status} className="flex items-center gap-1.5">
+            <span
+              className={`h-2.5 w-2.5 rounded-full border ${getAgendaStatusLegendColor(status)}`}
+            />
+            <span className="text-neutral-500">{label}</span>
+          </div>
+        ))}
+      </div>
+
+      {isLoading ? (
+        <div className="flex justify-center py-16">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-900 border-t-transparent" />
+        </div>
+      ) : (
+        <AgendaGrid
+          barbeiros={barbeirosVisiveis}
+          agendamentos={agendamentos}
+          onSlotClick={handleSlotClick}
+          onAgendamentoClick={handleAgendamentoClick}
+        />
+      )}
+
+      <AgendamentoFormModal
+        open={formOpen}
+        onClose={handleCloseForm}
+        onSubmit={handleSubmit}
+        onCancelAgendamento={handleCancelAgendamento}
+        agendamento={editingAgendamento}
+        prefilled={prefilled}
+        agendamentos={todosAgendamentos}
+        clientes={clientes}
+        barbeiros={barbeiros}
+        servicos={servicos}
+      />
+    </div>
+  )
+}

@@ -1,0 +1,49 @@
+# Nginx — pinktech.com.br (443)
+# Cardápio usa location / → :3000 (inclui /api/ dele)
+# Barbearia usa prefixos /barbearia/ e /barbearia/api/ — NÃO use location /api/ global
+#
+# Cole dentro do server { listen 443 ssl; server_name pinktech.com.br ... }
+
+    ######################################
+    # BARBEARIA — API (.NET em localhost:7755)
+    # Mais específico que /barbearia/ — nginx escolhe o prefixo mais longo
+    ######################################
+    location /barbearia/api/ {
+        proxy_pass http://127.0.0.1:7755/api/;
+
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    ######################################
+    # BARBEARIA — Frontend (serve em 7756)
+    ######################################
+    location /barbearia/ {
+        proxy_pass http://127.0.0.1:7756;
+
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    ######################################
+    # CARDÁPIO — manter por último (location / captura o resto)
+    ######################################
+    # location / {
+    #     proxy_pass http://127.0.0.1:3000;
+    #     ...
+    # }
+
+# Frontend .env.production:
+#   VITE_API_URL=/barbearia/api
+#
+# Após alterar: npm run build && systemctl restart barbeariafront
+# Remova qualquer location /api/ { ... } que aponte para a barbearia no server 443

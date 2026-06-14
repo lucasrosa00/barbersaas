@@ -1,0 +1,9 @@
+{
+  "public": "dist",
+  "rewrites": [
+    { "source": "/barbearia/assets/:path*", "destination": "/assets/:path*" },
+    { "source": "/barbearia", "destination": "/index.html" },
+    { "source": "/barbearia/", "destination": "/index.html" },
+    { "source": "/barbearia/:path*", "destination": "/index.html" }
+  ]
+}

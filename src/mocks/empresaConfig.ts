@@ -1,0 +1,40 @@
+import type { EmpresaConfig } from '@/types/empresaConfig'
+
+export const mockEmpresaConfig: EmpresaConfig[] = [
+  {
+    id: 'emp-001',
+    nome: 'Barbearia do João',
+    logo: 'https://api.dicebear.com/7.x/initials/svg?seed=BJ&backgroundColor=16a34a',
+    telefone: '(11) 3456-7890',
+    endereco: 'Rua das Flores, 123 — São Paulo, SP',
+    horarioAbertura: '08:00',
+    horarioFechamento: '20:00',
+    intervaloSlots: 15,
+    confirmacaoManual: true,
+    permitirMesmoDia: true,
+  },
+  {
+    id: 'emp-002',
+    nome: 'Corte & Estilo',
+    logo: 'https://api.dicebear.com/7.x/initials/svg?seed=CE&backgroundColor=15803d',
+    telefone: '(21) 2345-6789',
+    endereco: 'Av. Atlântica, 456 — Rio de Janeiro, RJ',
+    horarioAbertura: '09:00',
+    horarioFechamento: '20:00',
+    intervaloSlots: 15,
+    confirmacaoManual: false,
+    permitirMesmoDia: true,
+  },
+  {
+    id: 'emp-003',
+    nome: 'Navalha Premium',
+    logo: 'https://api.dicebear.com/7.x/initials/svg?seed=NP&backgroundColor=166534',
+    telefone: '(31) 9876-5432',
+    endereco: 'Rua da Bahia, 789 — Belo Horizonte, MG',
+    horarioAbertura: '08:00',
+    horarioFechamento: '18:00',
+    intervaloSlots: 30,
+    confirmacaoManual: true,
+    permitirMesmoDia: false,
+  },
+]

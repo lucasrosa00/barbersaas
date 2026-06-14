@@ -1,0 +1,276 @@
+import { useEffect, useMemo } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { AGENDAMENTO_STATUS } from '@/constants/agendamentoStatus'
+import { Button } from '@/components/ui/Button'
+import { FormActions } from '@/components/ui/FormActions'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
+import type { AgendamentoEnriquecido, AgendamentoFormData } from '@/types/agendamento'
+import type { Cliente } from '@/types/cliente'
+import type { Barbeiro } from '@/types/barbeiro'
+import type { Servico } from '@/types/servico'
+import {
+  formatHorarioIntervalo,
+  getHorariosDisponiveis,
+  hasConflict,
+} from '@/utils/agenda'
+
+const statusValues = AGENDAMENTO_STATUS.map((s) => s.value) as [
+  AgendamentoFormData['status'],
+  ...AgendamentoFormData['status'][],
+]
+
+interface AgendamentoFormProps {
+  defaultValues?: Partial<AgendamentoEnriquecido>
+  clientes: Cliente[]
+  barbeiros: Barbeiro[]
+  servicos: Servico[]
+  agendamentos: AgendamentoEnriquecido[]
+  editingId?: string
+  onSubmit: (data: AgendamentoFormData) => void | Promise<void>
+  onCancel: () => void
+  onCancelAgendamento?: () => void
+  submitLabel?: string
+  isEditing?: boolean
+}
+
+export function AgendamentoForm({
+  defaultValues,
+  clientes,
+  barbeiros,
+  servicos,
+  agendamentos,
+  editingId,
+  onSubmit,
+  onCancel,
+  onCancelAgendamento,
+  submitLabel = 'Salvar',
+  isEditing = false,
+}: AgendamentoFormProps) {
+  const agendamentoSchema = useMemo(
+    () =>
+      z
+        .object({
+          clienteId: z.string().min(1, 'Selecione um cliente'),
+          barbeiroId: z.string().min(1, 'Selecione um barbeiro'),
+          servicoId: z.string().min(1, 'Selecione um serviço'),
+          data: z.string().min(1, 'Data é obrigatória'),
+          horario: z.string().min(1, 'Horário é obrigatório'),
+          status: z.enum(statusValues),
+        })
+        .superRefine((data, ctx) => {
+          const barbeiro = barbeiros.find((b) => b.id === data.barbeiroId)
+          const servico = servicos.find((s) => s.id === data.servicoId)
+          if (!barbeiro || !servico) return
+
+          if (
+            hasConflict(
+              agendamentos,
+              data.data,
+              data.barbeiroId,
+              data.horario,
+              servico.duracaoMinutos,
+              editingId,
+            )
+          ) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: 'Horário indisponível — conflito com outro agendamento',
+              path: ['horario'],
+            })
+          }
+        }),
+    [agendamentos, barbeiros, servicos, editingId],
+  )
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm<AgendamentoFormData>({
+    resolver: zodResolver(agendamentoSchema),
+    defaultValues: {
+      clienteId: defaultValues?.clienteId ?? '',
+      barbeiroId: defaultValues?.barbeiroId ?? '',
+      servicoId: defaultValues?.servicoId ?? '',
+      data: defaultValues?.data ?? new Date().toISOString().split('T')[0],
+      horario: defaultValues?.horario ?? '',
+      status: defaultValues?.status ?? 'agendado',
+    },
+  })
+
+  const barbeiroId = watch('barbeiroId')
+  const servicoId = watch('servicoId')
+  const horario = watch('horario')
+  const dataSelecionada = watch('data')
+  const status = watch('status')
+
+  const barbeiroSelecionado = barbeiros.find((b) => b.id === barbeiroId)
+  const servicoSelecionado = servicos.find((s) => s.id === servicoId)
+
+  const servicosFiltrados = servicos.filter(
+    (s) => !barbeiroId || s.barbeirosDisponiveis.includes(barbeiroId),
+  )
+
+  const horariosDisponiveis = useMemo(() => {
+    if (!barbeiroSelecionado || !servicoSelecionado || !dataSelecionada) return []
+    return getHorariosDisponiveis(
+      barbeiroSelecionado,
+      agendamentos,
+      servicoSelecionado.duracaoMinutos,
+      dataSelecionada,
+      editingId,
+    )
+  }, [barbeiroSelecionado, servicoSelecionado, dataSelecionada, agendamentos, editingId])
+
+  useEffect(() => {
+    if (servicoId && !servicosFiltrados.some((s) => s.id === servicoId)) {
+      setValue('servicoId', '')
+    }
+  }, [barbeiroId, servicosFiltrados, servicoId, setValue])
+
+  useEffect(() => {
+    if (!horario || horariosDisponiveis.length === 0) return
+    if (!horariosDisponiveis.includes(horario)) {
+      setValue('horario', horariosDisponiveis[0])
+    }
+  }, [horariosDisponiveis, horario, setValue])
+
+  const canCancel =
+    isEditing &&
+    onCancelAgendamento &&
+    status !== 'cancelado' &&
+    status !== 'finalizado'
+
+  const intervaloPreview =
+    servicoSelecionado && horario
+      ? formatHorarioIntervalo(horario, servicoSelecionado.duracaoMinutos)
+      : null
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <Select
+        label="Cliente"
+        placeholder="Selecione o cliente"
+        options={clientes.map((c) => ({ value: c.id, label: c.nome }))}
+        error={errors.clienteId?.message}
+        {...register('clienteId')}
+      />
+
+      <Select
+        label="Barbeiro"
+        placeholder="Selecione o barbeiro"
+        options={barbeiros.map((b) => ({ value: b.id, label: b.nome }))}
+        error={errors.barbeiroId?.message}
+        {...register('barbeiroId')}
+      />
+
+      <Select
+        label="Serviço"
+        placeholder="Selecione o serviço"
+        options={servicosFiltrados.map((s) => ({
+          value: s.id,
+          label: `${s.nome} (${s.duracaoMinutos} min)`,
+        }))}
+        error={errors.servicoId?.message}
+        disabled={!barbeiroId}
+        {...register('servicoId')}
+      />
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Input
+          label="Data"
+          type="date"
+          error={errors.data?.message}
+          {...register('data')}
+        />
+
+        {barbeiroSelecionado && servicoSelecionado ? (
+          <Select
+            label="Horário de início"
+            options={horariosDisponiveis.map((h) => ({
+              value: h,
+              label: formatHorarioIntervalo(h, servicoSelecionado.duracaoMinutos),
+            }))}
+            error={errors.horario?.message}
+            {...register('horario')}
+          />
+        ) : (
+          <div className="space-y-1.5">
+            <span className="block text-sm font-medium text-neutral-600">
+              Horário de início
+            </span>
+            <p className="rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-500">
+              Selecione barbeiro e serviço
+            </p>
+          </div>
+        )}
+      </div>
+
+      {intervaloPreview && (
+        <p className="text-xs text-neutral-900">
+          Duração: {servicoSelecionado?.duracaoMinutos} min · Intervalo{' '}
+          {intervaloPreview}
+        </p>
+      )}
+
+      {barbeiroSelecionado &&
+        servicoSelecionado &&
+        horariosDisponiveis.length === 0 && (
+          <p className="text-xs text-neutral-700">
+            Nenhum horário disponível para este barbeiro com a duração do
+            serviço selecionado.
+          </p>
+        )}
+
+      {isEditing && (
+        <Select
+          label="Status"
+          options={AGENDAMENTO_STATUS.map((s) => ({
+            value: s.value,
+            label: s.label,
+          }))}
+          error={errors.status?.message}
+          {...register('status')}
+        />
+      )}
+
+      <FormActions align="between">
+        <div className="w-full sm:w-auto">
+          {canCancel && (
+            <Button
+              type="button"
+              variant="danger"
+              onClick={onCancelAgendamento}
+              className="w-full sm:w-auto"
+            >
+              Cancelar agendamento
+            </Button>
+          )}
+        </div>
+
+        <div className="flex w-full flex-col-reverse gap-3 sm:w-auto sm:flex-row">
+          <Button type="button" variant="secondary" onClick={onCancel} className="w-full sm:w-auto">
+            Fechar
+          </Button>
+          <Button
+            type="submit"
+            isLoading={isSubmitting}
+            disabled={
+              !barbeiroSelecionado ||
+              !servicoSelecionado ||
+              horariosDisponiveis.length === 0
+            }
+            className="w-full sm:w-auto"
+          >
+            {submitLabel}
+          </Button>
+        </div>
+      </FormActions>
+    </form>
+  )
+}

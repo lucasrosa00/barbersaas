@@ -1,0 +1,46 @@
+# Instalação:
+#   sudo cp script/barbearia-front.service.example /etc/systemd/system/barbearia-front.service
+#   sudo nano /etc/systemd/system/barbearia-front.service   # ajuste o PATH do Node
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable barbearia-front
+#   sudo systemctl start barbearia-front
+#
+# Descobrir caminhos (como usuário ubuntu):
+#   which node
+#   which npm
+#   node -v
+#
+# IMPORTANTE — permissões (se journal mostrar EACCES em node_modules):
+#   Nunca rode npm install/build como root/sudo.
+#   sudo chown -R ubuntu:ubuntu /home/ubuntu/projetos/barbearia-front
+#   rm -rf node_modules/.vite-temp
+#   sudo -u ubuntu bash -lc 'cd /home/ubuntu/projetos/barbearia-front && npm ci && npm run build'
+
+[Unit]
+Description=Barbearia Frontend
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/projetos/barbearia-front
+
+# systemd NÃO carrega .bashrc / nvm — informe o PATH completo do Node
+Environment=HOME=/home/ubuntu
+Environment=NODE_ENV=production
+Environment=PATH=/home/ubuntu/.nvm/versions/node/v22.12.0/bin:/usr/local/bin:/usr/bin:/bin
+
+# Preferir caminho absoluto do npm (saída de: which npm)
+# npm start usa "serve" (estático) — não precisa do vite preview em produção
+ExecStart=/home/ubuntu/.nvm/versions/node/v22.12.0/bin/npm start
+
+Restart=always
+RestartSec=10
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=barbearia-front
+
+[Install]
+WantedBy=multi-user.target
