@@ -8,6 +8,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { useAuth } from '@/hooks/useAuth'
 import { useBarbeiros } from '@/hooks/useBarbeiros'
 import { useClientes } from '@/hooks/useClientes'
+import { useEmpresaConfig } from '@/hooks/useEmpresaConfig'
 import { useListaEspera } from '@/hooks/useListaEspera'
 import { useServicos } from '@/hooks/useServicos'
 import { agendamentoService } from '@/services/agenda/agendamentoService'
@@ -31,6 +32,9 @@ export function ListaEsperaPage() {
   const { clientes } = useClientes(empresaId)
   const { barbeiros } = useBarbeiros(empresaId)
   const { servicos } = useServicos(empresaId)
+  const { config: empresaConfig } = useEmpresaConfig()
+
+  const intervaloSlots = empresaConfig?.intervaloSlots ?? 15
 
   const [formOpen, setFormOpen] = useState(false)
   const [convertOpen, setConvertOpen] = useState(false)
@@ -89,6 +93,7 @@ export function ListaEsperaPage() {
             agendamentos,
             servico.duracaoMinutos,
             convertingItem.dataSolicitada,
+            intervaloSlots,
           )
         : undefined
 
@@ -100,7 +105,7 @@ export function ListaEsperaPage() {
       horario,
       status: 'agendado',
     }
-  }, [convertingItem, servicos, barbeiros, agendamentos])
+  }, [convertingItem, servicos, barbeiros, agendamentos, intervaloSlots])
 
   if (!user) return null
 
@@ -153,6 +158,7 @@ export function ListaEsperaPage() {
         clientes={clientes}
         barbeiros={barbeiros}
         servicos={servicos}
+        intervaloSlots={intervaloSlots}
       />
 
       <ConfirmDialog

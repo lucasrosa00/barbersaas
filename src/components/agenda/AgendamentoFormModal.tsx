@@ -4,6 +4,7 @@ import type { AgendamentoEnriquecido, AgendamentoFormData } from '@/types/agenda
 import type { Cliente } from '@/types/cliente'
 import type { Barbeiro } from '@/types/barbeiro'
 import type { Servico } from '@/types/servico'
+import type { IntervaloSlot } from '@/types/empresaConfig'
 
 interface AgendamentoFormModalProps {
   open: boolean
@@ -16,6 +17,7 @@ interface AgendamentoFormModalProps {
   clientes: Cliente[]
   barbeiros: Barbeiro[]
   servicos: Servico[]
+  intervaloSlots: IntervaloSlot
 }
 
 export function AgendamentoFormModal({
@@ -29,6 +31,7 @@ export function AgendamentoFormModal({
   clientes,
   barbeiros,
   servicos,
+  intervaloSlots,
 }: AgendamentoFormModalProps) {
   const isEditing = !!agendamento
 
@@ -53,6 +56,7 @@ export function AgendamentoFormModal({
         clientes={clientes}
         barbeiros={barbeiros}
         servicos={servicos}
+        intervaloSlots={intervaloSlots}
         onSubmit={handleSubmit}
         onCancel={onClose}
         onCancelAgendamento={onCancelAgendamento}

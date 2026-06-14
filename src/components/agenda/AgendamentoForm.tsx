@@ -11,6 +11,7 @@ import type { AgendamentoEnriquecido, AgendamentoFormData } from '@/types/agenda
 import type { Cliente } from '@/types/cliente'
 import type { Barbeiro } from '@/types/barbeiro'
 import type { Servico } from '@/types/servico'
+import type { IntervaloSlot } from '@/types/empresaConfig'
 import {
   formatHorarioIntervalo,
   getHorariosDisponiveis,
@@ -28,6 +29,7 @@ interface AgendamentoFormProps {
   barbeiros: Barbeiro[]
   servicos: Servico[]
   agendamentos: AgendamentoEnriquecido[]
+  intervaloSlots: IntervaloSlot
   editingId?: string
   onSubmit: (data: AgendamentoFormData) => void | Promise<void>
   onCancel: () => void
@@ -42,6 +44,7 @@ export function AgendamentoForm({
   barbeiros,
   servicos,
   agendamentos,
+  intervaloSlots,
   editingId,
   onSubmit,
   onCancel,
@@ -123,9 +126,19 @@ export function AgendamentoForm({
       agendamentos,
       servicoSelecionado.duracaoMinutos,
       dataSelecionada,
+      intervaloSlots,
       editingId,
+      horario,
     )
-  }, [barbeiroSelecionado, servicoSelecionado, dataSelecionada, agendamentos, editingId])
+  }, [
+    barbeiroSelecionado,
+    servicoSelecionado,
+    dataSelecionada,
+    agendamentos,
+    intervaloSlots,
+    editingId,
+    horario,
+  ])
 
   useEffect(() => {
     if (servicoId && !servicosFiltrados.some((s) => s.id === servicoId)) {

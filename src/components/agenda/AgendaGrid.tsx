@@ -2,19 +2,23 @@ import type { Barbeiro } from '@/types/barbeiro'
 import type { AgendamentoEnriquecido } from '@/types/agendamento'
 import { AgendamentoCard } from '@/components/agenda/AgendamentoCard'
 import {
-  AGENDA_SLOT_MINUTES,
   getAgendaTotalHeight,
+  getClickableHorarios,
   getHeightFromDuracao,
   getSlots,
   getTopFromHorario,
-  isSlotOccupied,
   isSlotWithinWorkingHours,
   SLOT_HEIGHT_PX,
 } from '@/utils/agenda'
+import type { IntervaloSlot } from '@/types/empresaConfig'
 
 interface AgendaGridProps {
   barbeiros: Barbeiro[]
   agendamentos: AgendamentoEnriquecido[]
+  data: string
+  intervaloSlots: IntervaloSlot
+  agendaInicio?: string
+  agendaFim?: string
   onSlotClick: (barbeiroId: string, horario: string) => void
   onAgendamentoClick: (agendamento: AgendamentoEnriquecido) => void
 }
@@ -22,11 +26,15 @@ interface AgendaGridProps {
 export function AgendaGrid({
   barbeiros,
   agendamentos,
+  data,
+  intervaloSlots,
+  agendaInicio,
+  agendaFim,
   onSlotClick,
   onAgendamentoClick,
 }: AgendaGridProps) {
-  const slots = getSlots()
-  const totalHeight = getAgendaTotalHeight()
+  const slots = getSlots(agendaInicio, agendaFim)
+  const totalHeight = getAgendaTotalHeight(agendaInicio, agendaFim)
   const singleColumn = barbeiros.length === 1
 
   if (barbeiros.length === 0) {
@@ -79,9 +87,19 @@ export function AgendaGrid({
 
           {/* Colunas dos barbeiros */}
           {barbeiros.map((barbeiro) => {
-            const barbeiroAgendamentos = agendamentos.filter(
-              (a) => a.barbeiroId === barbeiro.id,
+            const barbeiroAgendamentos = agendamentos
+              .filter(
+                (a) =>
+                  a.barbeiroId === barbeiro.id && a.status !== 'cancelado',
+              )
+              .sort((a, b) => a.horario.localeCompare(b.horario))
+            const clickableHorarios = getClickableHorarios(
+              barbeiro,
+              agendamentos,
+              data,
+              intervaloSlots,
             )
+            const gridInicio = agendaInicio
 
             return (
               <div
@@ -104,11 +122,6 @@ export function AgendaGrid({
                 <div className="relative bg-neutral-50" style={{ height: totalHeight }}>
                   {/* Slots de fundo */}
                   {slots.map((slot, index) => {
-                    const occupied = isSlotOccupied(
-                      agendamentos,
-                      barbeiro.id,
-                      slot,
-                    )
                     const withinHours = isSlotWithinWorkingHours(slot, barbeiro)
                     const isHourMark = slot.endsWith(':00')
 
@@ -124,39 +137,44 @@ export function AgendaGrid({
                           top: index * SLOT_HEIGHT_PX,
                           height: SLOT_HEIGHT_PX,
                         }}
-                      >
-                        {!occupied && withinHours && (
-                          <button
-                            type="button"
-                            onClick={() => onSlotClick(barbeiro.id, slot)}
-                            className="group flex h-full min-h-[44px] w-full items-center justify-center opacity-100 transition-opacity sm:opacity-0 sm:hover:opacity-100"
-                            aria-label={`Agendar ${slot} com ${barbeiro.nome}`}
-                          >
-                            <span className="rounded bg-neutral-100 px-1.5 py-0.5 text-xs text-neutral-500 group-hover:text-neutral-900">
-                              +
-                            </span>
-                          </button>
-                        )}
-                      </div>
+                      />
                     )
                   })}
 
+                  {clickableHorarios.map((horario) => (
+                    <button
+                      key={horario}
+                      type="button"
+                      onClick={() => onSlotClick(barbeiro.id, horario)}
+                      className="group absolute z-[5] flex w-full items-start justify-center opacity-100 transition-opacity sm:opacity-0 sm:hover:opacity-100"
+                      style={{
+                        top: getTopFromHorario(horario, gridInicio),
+                        height: SLOT_HEIGHT_PX,
+                      }}
+                      aria-label={`Agendar ${horario} com ${barbeiro.nome}`}
+                    >
+                      <span className="rounded bg-neutral-100 px-1.5 py-0.5 text-xs text-neutral-500 group-hover:text-neutral-900">
+                        +
+                      </span>
+                    </button>
+                  ))}
+
                   {/* Blocos de agendamento */}
-                  {barbeiroAgendamentos.map((ag) => (
+                  {barbeiroAgendamentos.map((ag, index) => (
                     <div
                       key={ag.id}
-                      className="absolute z-10 px-0.5"
+                      className="absolute px-0.5"
                       style={{
-                        top: getTopFromHorario(ag.horario),
+                        top: getTopFromHorario(ag.horario, gridInicio),
                         height: getHeightFromDuracao(ag.duracaoMinutos),
                         left: 0,
                         right: 0,
+                        zIndex: index + 1,
                       }}
                     >
                       <AgendamentoCard
                         agendamento={ag}
                         onClick={onAgendamentoClick}
-                        compact={ag.duracaoMinutos <= AGENDA_SLOT_MINUTES * 2}
                       />
                     </div>
                   ))}

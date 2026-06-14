@@ -75,8 +75,8 @@ export function HorariosConfigForm({
       />
 
       <p className="text-xs text-neutral-500">
-        Essas configurações serão aplicadas na agenda quando integradas ao
-        backend.
+        Define a grade base da agenda. Horários logo após o fim de cada serviço
+        também ficam disponíveis para encaixe.
       </p>
 
       <div className="flex justify-stretch sm:justify-end">

@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useAgendamentos } from '@/hooks/useAgendamentos'
 import { useBarbeiros } from '@/hooks/useBarbeiros'
 import { useClientes } from '@/hooks/useClientes'
+import { useEmpresaConfig } from '@/hooks/useEmpresaConfig'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { useServicos } from '@/hooks/useServicos'
 import type {
@@ -38,6 +39,11 @@ export function AgendaPage() {
   const { barbeiros } = useBarbeiros(empresaId)
   const { clientes } = useClientes(empresaId)
   const { servicos } = useServicos(empresaId)
+  const { config: empresaConfig } = useEmpresaConfig()
+
+  const intervaloSlots = empresaConfig?.intervaloSlots ?? 15
+  const agendaInicio = empresaConfig?.horarioAbertura
+  const agendaFim = empresaConfig?.horarioFechamento
 
   const [formOpen, setFormOpen] = useState(false)
   const [editingAgendamento, setEditingAgendamento] = useState<
@@ -67,6 +73,11 @@ export function AgendaPage() {
   }, [barbeiros, isDesktop, selectedBarbeiroId])
 
   const barbeiroSelecionado = barbeiros.find((b) => b.id === selectedBarbeiroId)
+
+  const agendamentosAtivos = useMemo(
+    () => agendamentos.filter((a) => a.status !== 'cancelado'),
+    [agendamentos],
+  )
 
   function handleOpenCreate() {
     setEditingAgendamento(undefined)
@@ -139,8 +150,8 @@ export function AgendaPage() {
               {formatDateBR(selectedDate)}
             </p>
             <p className="text-xs text-neutral-500">
-              {agendamentos.length}{' '}
-              {agendamentos.length === 1 ? 'agendamento' : 'agendamentos'}
+              {agendamentosAtivos.length}{' '}
+              {agendamentosAtivos.length === 1 ? 'agendamento' : 'agendamentos'}
             </p>
           </div>
 
@@ -205,7 +216,11 @@ export function AgendaPage() {
       ) : (
         <AgendaGrid
           barbeiros={barbeirosVisiveis}
-          agendamentos={agendamentos}
+          agendamentos={agendamentosAtivos}
+          data={selectedDate}
+          intervaloSlots={intervaloSlots}
+          agendaInicio={agendaInicio}
+          agendaFim={agendaFim}
           onSlotClick={handleSlotClick}
           onAgendamentoClick={handleAgendamentoClick}
         />
@@ -222,6 +237,7 @@ export function AgendaPage() {
         clientes={clientes}
         barbeiros={barbeiros}
         servicos={servicos}
+        intervaloSlots={intervaloSlots}
       />
     </div>
   )
