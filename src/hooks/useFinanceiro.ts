@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { financeiroService } from '@/services/financeiro/financeiroService'
-import type { FinanceiroData } from '@/types/financeiro'
+import type { FinanceiroData, MovimentacaoFormData } from '@/types/financeiro'
 
 export function useFinanceiro(empresaId: string) {
   const [data, setData] = useState<FinanceiroData | null>(null)
@@ -21,5 +21,10 @@ export function useFinanceiro(empresaId: string) {
     load()
   }, [load])
 
-  return { data, isLoading, reload: load }
+  async function createMovimentacao(formData: MovimentacaoFormData) {
+    await financeiroService.createMovimentacao(empresaId, formData)
+    await load()
+  }
+
+  return { data, isLoading, reload: load, createMovimentacao }
 }

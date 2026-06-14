@@ -33,7 +33,7 @@ export function DashboardKpiCards({
     {
       label: 'Faturamento do dia',
       value: formatCurrency(faturamentoDia),
-      sub: 'Atendimentos finalizados',
+      sub: 'Entradas registradas',
       icon: TrendingUp,
       color: 'text-neutral-700',
       bg: 'bg-neutral-100',

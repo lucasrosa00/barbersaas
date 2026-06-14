@@ -29,3 +29,11 @@ export interface FinanceiroData {
   faturamentoMensal: DadoGrafico[]
   movimentacoes: Movimentacao[]
 }
+
+export interface MovimentacaoFormData {
+  descricao: string
+  data: string
+  valor: number
+  tipo: TipoMovimentacao
+  barbeiroId?: string
+}

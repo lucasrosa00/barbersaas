@@ -1,5 +1,10 @@
 import { apiClient } from '@/services/api/client'
-import type { FinanceiroData, Movimentacao, TipoMovimentacao } from '@/types/financeiro'
+import type {
+  FinanceiroData,
+  Movimentacao,
+  MovimentacaoFormData,
+  TipoMovimentacao,
+} from '@/types/financeiro'
 
 interface FinanceiroApiResponse {
   resumo: FinanceiroData['resumo']
@@ -56,5 +61,26 @@ export const financeiroService = {
         mapMovimentacao(item, empresaId),
       ),
     }
+  },
+
+  async createMovimentacao(
+    empresaId: string,
+    formData: MovimentacaoFormData,
+  ): Promise<Movimentacao> {
+    const dto = await apiClient<FinanceiroApiResponse['movimentacoes'][number]>(
+      '/financeiro/movimentacoes',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          descricao: formData.descricao,
+          data: formData.data,
+          valor: formData.valor,
+          tipo: formData.tipo,
+          barbeiroId: formData.barbeiroId || null,
+        }),
+      },
+    )
+
+    return mapMovimentacao(dto, empresaId)
   },
 }
