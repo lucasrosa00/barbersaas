@@ -108,10 +108,12 @@ export function AgendamentoForm({
 
   const barbeiroId = watch('barbeiroId')
   const servicoId = watch('servicoId')
+  const clienteId = watch('clienteId')
   const horario = watch('horario')
   const dataSelecionada = watch('data')
   const status = watch('status')
 
+  const clienteSelecionado = clientes.find((c) => c.id === clienteId)
   const barbeiroSelecionado = barbeiros.find((b) => b.id === barbeiroId)
   const servicoSelecionado = servicos.find((s) => s.id === servicoId)
 
@@ -166,13 +168,37 @@ export function AgendamentoForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <Select
-        label="Cliente"
-        placeholder="Selecione o cliente"
-        options={clientes.map((c) => ({ value: c.id, label: c.nome }))}
-        error={errors.clienteId?.message}
-        {...register('clienteId')}
-      />
+      <div className="space-y-2">
+        <Select
+          label="Cliente"
+          placeholder="Selecione o cliente"
+          options={clientes.map((c) => ({ value: c.id, label: c.nome }))}
+          error={errors.clienteId?.message}
+          {...register('clienteId')}
+        />
+
+        {isEditing && clienteSelecionado && (
+          <div className="space-y-1.5 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm">
+            <p className="text-neutral-700">
+              <span className="font-medium text-neutral-500">Telefone: </span>
+              <a
+                href={`tel:${clienteSelecionado.telefone.replace(/\D/g, '')}`}
+                className="text-neutral-900 hover:underline"
+              >
+                {clienteSelecionado.telefone}
+              </a>
+            </p>
+            {clienteSelecionado.observacoes ? (
+              <p className="text-neutral-700">
+                <span className="font-medium text-neutral-500">Observações: </span>
+                {clienteSelecionado.observacoes}
+              </p>
+            ) : (
+              <p className="text-neutral-400">Sem observações cadastradas</p>
+            )}
+          </div>
+        )}
+      </div>
 
       <Select
         label="Barbeiro"
