@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { AgendaGrid } from '@/components/agenda/AgendaGrid'
 import { AgendamentoFormModal } from '@/components/agenda/AgendamentoFormModal'
+import { AgendamentoMoveModal } from '@/components/agenda/AgendamentoMoveModal'
 import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
 import { useAuth } from '@/hooks/useAuth'
@@ -51,6 +52,12 @@ export function AgendaPage() {
   >()
   const [prefilled, setPrefilled] = useState<Partial<AgendamentoFormData>>()
   const [selectedBarbeiroId, setSelectedBarbeiroId] = useState('')
+  const [pendingMove, setPendingMove] = useState<{
+    agendamento: AgendamentoEnriquecido
+    barbeiroId: string
+    horario: string
+  } | null>(null)
+  const [isMoving, setIsMoving] = useState(false)
 
   const isDesktop = useMediaQuery('(min-width: 1024px)')
 
@@ -129,6 +136,37 @@ export function AgendaPage() {
       handleCloseForm()
     }
   }
+
+  function handleAgendamentoMove(
+    agendamento: AgendamentoEnriquecido,
+    barbeiroId: string,
+    horario: string,
+  ) {
+    setPendingMove({ agendamento, barbeiroId, horario })
+  }
+
+  async function handleConfirmMove() {
+    if (!pendingMove) return
+
+    setIsMoving(true)
+    try {
+      await updateAgendamento(pendingMove.agendamento.id, {
+        clienteId: pendingMove.agendamento.clienteId,
+        barbeiroId: pendingMove.barbeiroId,
+        servicoId: pendingMove.agendamento.servicoId,
+        data: pendingMove.agendamento.data,
+        horario: pendingMove.horario,
+        status: pendingMove.agendamento.status,
+      })
+      setPendingMove(null)
+    } finally {
+      setIsMoving(false)
+    }
+  }
+
+  const pendingMoveBarbeiro = pendingMove
+    ? barbeiros.find((b) => b.id === pendingMove.barbeiroId)
+    : undefined
 
   if (!user) return null
 
@@ -217,12 +255,14 @@ export function AgendaPage() {
         <AgendaGrid
           barbeiros={barbeirosVisiveis}
           agendamentos={agendamentosAtivos}
+          servicos={servicos}
           data={selectedDate}
           intervaloSlots={intervaloSlots}
           agendaInicio={agendaInicio}
           agendaFim={agendaFim}
           onSlotClick={handleSlotClick}
           onAgendamentoClick={handleAgendamentoClick}
+          onAgendamentoMove={handleAgendamentoMove}
         />
       )}
 
@@ -238,6 +278,16 @@ export function AgendaPage() {
         barbeiros={barbeiros}
         servicos={servicos}
         intervaloSlots={intervaloSlots}
+      />
+
+      <AgendamentoMoveModal
+        open={!!pendingMove}
+        agendamento={pendingMove?.agendamento ?? null}
+        barbeiroNome={pendingMoveBarbeiro?.nome ?? ''}
+        novoHorario={pendingMove?.horario ?? ''}
+        isLoading={isMoving}
+        onClose={() => setPendingMove(null)}
+        onConfirm={handleConfirmMove}
       />
     </div>
   )

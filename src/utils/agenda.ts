@@ -272,6 +272,42 @@ export function getHeightFromDuracao(duracaoMinutos: number): number {
   return (duracaoMinutos / AGENDA_SLOT_MINUTES) * SLOT_HEIGHT_PX
 }
 
+export function getHorarioFromTop(
+  topPx: number,
+  inicio = AGENDA_INICIO,
+): string {
+  const offsetMinutes = (topPx / SLOT_HEIGHT_PX) * AGENDA_SLOT_MINUTES
+  const totalMinutes = timeToMinutes(inicio) + offsetMinutes
+  const snapped =
+    Math.round(totalMinutes / AGENDA_BOOKING_STEP_MINUTES) *
+    AGENDA_BOOKING_STEP_MINUTES
+  return minutesToTime(Math.max(0, snapped))
+}
+
+export function canPlaceAgendamentoAt(
+  agendamentos: AgendamentoEnriquecido[],
+  data: string,
+  barbeiro: Barbeiro,
+  horario: string,
+  duracaoMinutos: number,
+  excludeId?: string,
+): boolean {
+  if (!fitsInWorkingHours(horario, duracaoMinutos, barbeiro)) return false
+  if (
+    hasConflict(
+      agendamentos,
+      data,
+      barbeiro.id,
+      horario,
+      duracaoMinutos,
+      excludeId,
+    )
+  ) {
+    return false
+  }
+  return true
+}
+
 export function getHorarioFim(horario: string, duracaoMinutos: number): string {
   return minutesToTime(timeToMinutes(horario) + duracaoMinutos)
 }

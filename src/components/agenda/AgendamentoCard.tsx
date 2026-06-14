@@ -11,11 +11,11 @@ import {
 
 interface AgendamentoCardProps {
   agendamento: AgendamentoEnriquecido
-  onClick: (agendamento: AgendamentoEnriquecido) => void
+  className?: string
 }
 
 const cardBaseClass =
-  'h-full w-full min-h-0 overflow-hidden rounded-md border text-left shadow-sm transition-all hover:brightness-[1.02] hover:shadow'
+  'h-full w-full min-h-0 overflow-hidden rounded-md border text-left shadow-sm'
 
 function TimeColumn({ inicio, fim }: { inicio: string; fim: string }) {
   return (
@@ -33,7 +33,7 @@ function TimeColumn({ inicio, fim }: { inicio: string; fim: string }) {
 
 export function AgendamentoCard({
   agendamento,
-  onClick,
+  className = '',
 }: AgendamentoCardProps) {
   const horarioFim = getHorarioFim(
     agendamento.horario,
@@ -44,15 +44,11 @@ export function AgendamentoCard({
     agendamento.duracaoMinutos,
   )
   const statusLabel = getStatusLabel(agendamento.status)
-  const title = `${agendamento.clienteNome} - ${agendamento.servicoNome} - ${statusLabel} - ${intervalo}`
   const isShort = agendamento.duracaoMinutos < AGENDA_SLOT_MINUTES
 
   return (
-    <button
-      type="button"
-      title={title}
-      onClick={() => onClick(agendamento)}
-      className={`${cardBaseClass} ${getAgendaStatusStyles(agendamento.status)}`}
+    <div
+      className={`${cardBaseClass} ${getAgendaStatusStyles(agendamento.status)} ${className}`}
     >
       {isShort ? (
         <div className="flex h-full items-center gap-1.5 px-1.5 py-0">
@@ -89,6 +85,6 @@ export function AgendamentoCard({
           <TimeColumn inicio={agendamento.horario} fim={horarioFim} />
         </div>
       )}
-    </button>
+    </div>
   )
 }

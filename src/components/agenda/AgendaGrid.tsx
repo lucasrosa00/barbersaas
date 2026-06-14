@@ -1,10 +1,15 @@
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Barbeiro } from '@/types/barbeiro'
 import type { AgendamentoEnriquecido } from '@/types/agendamento'
+import type { Servico } from '@/types/servico'
 import { AgendamentoCard } from '@/components/agenda/AgendamentoCard'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 import {
+  canPlaceAgendamentoAt,
   getAgendaTotalHeight,
   getClickableHorarios,
   getHeightFromDuracao,
+  getHorarioFromTop,
   getSlots,
   getTopFromHorario,
   isSlotWithinWorkingHours,
@@ -12,30 +17,234 @@ import {
 } from '@/utils/agenda'
 import type { IntervaloSlot } from '@/types/empresaConfig'
 
+const DRAG_THRESHOLD_PX = 5
+
+const DRAGGABLE_STATUS = new Set([
+  'agendado',
+  'confirmado',
+  'em_atendimento',
+])
+
+interface DropPreview {
+  barbeiroId: string
+  horario: string
+  valid: boolean
+}
+
 interface AgendaGridProps {
   barbeiros: Barbeiro[]
   agendamentos: AgendamentoEnriquecido[]
+  servicos: Servico[]
   data: string
   intervaloSlots: IntervaloSlot
   agendaInicio?: string
   agendaFim?: string
   onSlotClick: (barbeiroId: string, horario: string) => void
   onAgendamentoClick: (agendamento: AgendamentoEnriquecido) => void
+  onAgendamentoMove: (
+    agendamento: AgendamentoEnriquecido,
+    barbeiroId: string,
+    horario: string,
+  ) => void
 }
 
 export function AgendaGrid({
   barbeiros,
   agendamentos,
+  servicos,
   data,
   intervaloSlots,
   agendaInicio,
   agendaFim,
   onSlotClick,
   onAgendamentoClick,
+  onAgendamentoMove,
 }: AgendaGridProps) {
   const slots = getSlots(agendaInicio, agendaFim)
   const totalHeight = getAgendaTotalHeight(agendaInicio, agendaFim)
   const singleColumn = barbeiros.length === 1
+  const gridInicio = agendaInicio
+  /** Mouse/trackpad — evita conflito com scroll da página no touch */
+  const canDrag = useMediaQuery('(pointer: fine)')
+
+  const columnRefs = useRef<Map<string, HTMLDivElement>>(new Map())
+  const dragState = useRef<{
+    agendamento: AgendamentoEnriquecido
+    startX: number
+    startY: number
+    moved: boolean
+  } | null>(null)
+
+  const [draggingId, setDraggingId] = useState<string | null>(null)
+  const [pointerActive, setPointerActive] = useState(false)
+  const [dropPreview, setDropPreview] = useState<DropPreview | null>(null)
+  const dropPreviewRef = useRef<DropPreview | null>(null)
+
+  useEffect(() => {
+    dropPreviewRef.current = dropPreview
+  }, [dropPreview])
+
+  const evaluateDrop = useCallback(
+    (agendamento: AgendamentoEnriquecido, barbeiroId: string, horario: string) => {
+      const barbeiro = barbeiros.find((b) => b.id === barbeiroId)
+      const servico = servicos.find((s) => s.id === agendamento.servicoId)
+
+      if (!barbeiro) return false
+      if (!servico?.barbeirosDisponiveis.includes(barbeiroId)) return false
+      if (
+        agendamento.barbeiroId === barbeiroId &&
+        agendamento.horario === horario
+      ) {
+        return false
+      }
+
+      return canPlaceAgendamentoAt(
+        agendamentos,
+        data,
+        barbeiro,
+        horario,
+        agendamento.duracaoMinutos,
+        agendamento.id,
+      )
+    },
+    [agendamentos, barbeiros, data, servicos],
+  )
+
+  const findColumnAtPoint = useCallback(
+    (clientX: number, clientY: number) => {
+      for (const barbeiro of barbeiros) {
+        const el = columnRefs.current.get(barbeiro.id)
+        if (!el) continue
+
+        const rect = el.getBoundingClientRect()
+        if (
+          clientX >= rect.left &&
+          clientX <= rect.right &&
+          clientY >= rect.top &&
+          clientY <= rect.bottom
+        ) {
+          return { barbeiro, rect }
+        }
+      }
+      return null
+    },
+    [barbeiros],
+  )
+
+  const updateDropPreview = useCallback(
+    (clientX: number, clientY: number) => {
+      const drag = dragState.current
+      if (!drag) return
+
+      const column = findColumnAtPoint(clientX, clientY)
+      if (!column) {
+        setDropPreview(null)
+        return
+      }
+
+      const topPx = Math.max(0, clientY - column.rect.top)
+      const horario = getHorarioFromTop(topPx, gridInicio)
+      const valid = evaluateDrop(drag.agendamento, column.barbeiro.id, horario)
+
+      setDropPreview({
+        barbeiroId: column.barbeiro.id,
+        horario,
+        valid,
+      })
+    },
+    [evaluateDrop, findColumnAtPoint, gridInicio],
+  )
+
+  useEffect(() => {
+    if (!pointerActive || !canDrag) return
+
+    function handlePointerMove(e: PointerEvent) {
+      const drag = dragState.current
+      if (!drag) return
+
+      const dx = e.clientX - drag.startX
+      const dy = e.clientY - drag.startY
+      if (Math.abs(dx) > DRAG_THRESHOLD_PX || Math.abs(dy) > DRAG_THRESHOLD_PX) {
+        drag.moved = true
+      }
+
+      if (drag.moved && DRAGGABLE_STATUS.has(drag.agendamento.status)) {
+        updateDropPreview(e.clientX, e.clientY)
+      }
+    }
+
+    function handlePointerUp() {
+      const drag = dragState.current
+      if (!drag) return
+
+      const preview = dropPreviewRef.current
+
+      if (
+        drag.moved &&
+        DRAGGABLE_STATUS.has(drag.agendamento.status) &&
+        preview?.valid
+      ) {
+        onAgendamentoMove(
+          drag.agendamento,
+          preview.barbeiroId,
+          preview.horario,
+        )
+      } else if (!drag.moved) {
+        onAgendamentoClick(drag.agendamento)
+      }
+
+      dragState.current = null
+      setDraggingId(null)
+      setPointerActive(false)
+      setDropPreview(null)
+    }
+
+    document.addEventListener('pointermove', handlePointerMove)
+    document.addEventListener('pointerup', handlePointerUp)
+    document.body.style.userSelect = 'none'
+    if (draggingId) {
+      document.body.style.cursor = 'grabbing'
+    }
+
+    return () => {
+      document.removeEventListener('pointermove', handlePointerMove)
+      document.removeEventListener('pointerup', handlePointerUp)
+      document.body.style.userSelect = ''
+      document.body.style.cursor = ''
+    }
+  }, [
+    draggingId,
+    pointerActive,
+    canDrag,
+    onAgendamentoClick,
+    onAgendamentoMove,
+    updateDropPreview,
+  ])
+
+  function handlePointerDown(
+    e: React.PointerEvent<HTMLDivElement>,
+    agendamento: AgendamentoEnriquecido,
+  ) {
+    if (!canDrag || e.button !== 0) return
+
+    e.currentTarget.setPointerCapture(e.pointerId)
+    dragState.current = {
+      agendamento,
+      startX: e.clientX,
+      startY: e.clientY,
+      moved: false,
+    }
+    setPointerActive(true)
+
+    if (DRAGGABLE_STATUS.has(agendamento.status)) {
+      setDraggingId(agendamento.id)
+      setDropPreview(null)
+    }
+  }
+
+  const draggingAgendamento = draggingId
+    ? agendamentos.find((a) => a.id === draggingId)
+    : undefined
 
   if (barbeiros.length === 0) {
     return (
@@ -57,7 +266,6 @@ export function AgendaGrid({
         }
       >
         <div className={singleColumn ? 'flex w-full' : 'flex min-w-max'}>
-          {/* Coluna de horários */}
           <div className="w-14 shrink-0 border-r border-neutral-200 bg-white sm:w-16">
             <div className="h-14 border-b border-neutral-200" />
             <div className="relative" style={{ height: totalHeight }}>
@@ -85,7 +293,6 @@ export function AgendaGrid({
             </div>
           </div>
 
-          {/* Colunas dos barbeiros */}
           {barbeiros.map((barbeiro) => {
             const barbeiroAgendamentos = agendamentos
               .filter(
@@ -99,7 +306,6 @@ export function AgendaGrid({
               data,
               intervaloSlots,
             )
-            const gridInicio = agendaInicio
 
             return (
               <div
@@ -119,8 +325,14 @@ export function AgendaGrid({
                   </p>
                 </div>
 
-                <div className="relative bg-neutral-50" style={{ height: totalHeight }}>
-                  {/* Slots de fundo */}
+                <div
+                  ref={(el) => {
+                    if (el) columnRefs.current.set(barbeiro.id, el)
+                    else columnRefs.current.delete(barbeiro.id)
+                  }}
+                  className="relative bg-neutral-50"
+                  style={{ height: totalHeight }}
+                >
                   {slots.map((slot, index) => {
                     const withinHours = isSlotWithinWorkingHours(slot, barbeiro)
                     const isHourMark = slot.endsWith(':00')
@@ -159,25 +371,68 @@ export function AgendaGrid({
                     </button>
                   ))}
 
-                  {/* Blocos de agendamento */}
-                  {barbeiroAgendamentos.map((ag, index) => (
+                  {dropPreview?.barbeiroId === barbeiro.id && draggingAgendamento && (
                     <div
-                      key={ag.id}
-                      className="absolute px-0.5"
+                      className={`pointer-events-none absolute px-0.5 ${
+                        dropPreview.valid
+                          ? 'border-2 border-dashed border-emerald-400 bg-emerald-100/40'
+                          : 'border-2 border-dashed border-red-400 bg-red-100/40'
+                      }`}
                       style={{
-                        top: getTopFromHorario(ag.horario, gridInicio),
-                        height: getHeightFromDuracao(ag.duracaoMinutos),
+                        top: getTopFromHorario(dropPreview.horario, gridInicio),
+                        height: getHeightFromDuracao(
+                          draggingAgendamento.duracaoMinutos,
+                        ),
                         left: 0,
                         right: 0,
-                        zIndex: index + 1,
+                        zIndex: 40,
                       }}
-                    >
-                      <AgendamentoCard
-                        agendamento={ag}
-                        onClick={onAgendamentoClick}
-                      />
-                    </div>
-                  ))}
+                    />
+                  )}
+
+                  {barbeiroAgendamentos.map((ag, index) => {
+                    const isDragging = draggingId === ag.id
+                    const isDraggable =
+                      canDrag && DRAGGABLE_STATUS.has(ag.status)
+
+                    return (
+                      <div
+                        key={ag.id}
+                        role="button"
+                        tabIndex={0}
+                        className={`absolute px-0.5 ${
+                          isDraggable
+                            ? 'touch-none cursor-grab active:cursor-grabbing'
+                            : 'cursor-pointer'
+                        } ${isDragging ? 'opacity-40' : ''}`}
+                        style={{
+                          top: getTopFromHorario(ag.horario, gridInicio),
+                          height: getHeightFromDuracao(ag.duracaoMinutos),
+                          left: 0,
+                          right: 0,
+                          zIndex: isDragging ? 30 : index + 1,
+                        }}
+                        onPointerDown={
+                          isDraggable
+                            ? (e) => handlePointerDown(e, ag)
+                            : undefined
+                        }
+                        onClick={
+                          !canDrag
+                            ? () => onAgendamentoClick(ag)
+                            : undefined
+                        }
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            onAgendamentoClick(ag)
+                          }
+                        }}
+                      >
+                        <AgendamentoCard agendamento={ag} />
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             )
