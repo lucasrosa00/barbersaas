@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Barbeiro } from '@/types/barbeiro'
 import type { AgendamentoEnriquecido } from '@/types/agendamento'
 import type { Servico } from '@/types/servico'
@@ -6,6 +6,7 @@ import { AgendamentoCard } from '@/components/agenda/AgendamentoCard'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import {
   canPlaceAgendamentoAt,
+  getAgendaDisplayRange,
   getAgendaTotalHeight,
   getClickableHorarios,
   getHeightFromDuracao,
@@ -60,10 +61,13 @@ export function AgendaGrid({
   onAgendamentoClick,
   onAgendamentoMove,
 }: AgendaGridProps) {
-  const slots = getSlots(agendaInicio, agendaFim)
-  const totalHeight = getAgendaTotalHeight(agendaInicio, agendaFim)
+  const { inicio: gridInicio, fim: gridFim } = useMemo(
+    () => getAgendaDisplayRange(barbeiros, agendamentos, agendaInicio, agendaFim),
+    [barbeiros, agendamentos, agendaInicio, agendaFim],
+  )
+  const slots = getSlots(gridInicio, gridFim)
+  const totalHeight = getAgendaTotalHeight(gridInicio, gridFim)
   const singleColumn = barbeiros.length === 1
-  const gridInicio = agendaInicio
   /** Mouse/trackpad — evita conflito com scroll da página no touch */
   const canDrag = useMediaQuery('(pointer: fine)')
 
@@ -358,7 +362,7 @@ export function AgendaGrid({
                       key={horario}
                       type="button"
                       onClick={() => onSlotClick(barbeiro.id, horario)}
-                      className="group absolute z-[5] flex w-full items-start justify-center opacity-100 transition-opacity sm:opacity-0 sm:hover:opacity-100"
+                      className="group absolute z-[2] flex w-full items-start justify-center opacity-100 transition-opacity sm:opacity-0 sm:hover:opacity-100"
                       style={{
                         top: getTopFromHorario(horario, gridInicio),
                         height: SLOT_HEIGHT_PX,
@@ -410,7 +414,7 @@ export function AgendaGrid({
                           height: getHeightFromDuracao(ag.duracaoMinutos),
                           left: 0,
                           right: 0,
-                          zIndex: isDragging ? 30 : index + 1,
+                          zIndex: isDragging ? 40 : 10 + index,
                         }}
                         onPointerDown={
                           isDraggable

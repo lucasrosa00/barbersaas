@@ -22,6 +22,35 @@ export function getSlots(
   return generateTimeSlots(inicio, fim, AGENDA_GRID_MINUTES)
 }
 
+/** Faixa horária da grade — cobre empresa, barbeiros visíveis e agendamentos do dia */
+export function getAgendaDisplayRange(
+  barbeiros: Barbeiro[],
+  agendamentos: AgendamentoEnriquecido[],
+  empresaInicio?: string,
+  empresaFim?: string,
+): { inicio: string; fim: string } {
+  let inicio = timeToMinutes(empresaInicio ?? AGENDA_INICIO)
+  let fim = timeToMinutes(empresaFim ?? AGENDA_FIM)
+
+  for (const barbeiro of barbeiros) {
+    inicio = Math.min(inicio, timeToMinutes(barbeiro.horarioInicio))
+    fim = Math.max(fim, timeToMinutes(barbeiro.horarioFim))
+  }
+
+  for (const agendamento of agendamentos) {
+    if (agendamento.status === 'cancelado') continue
+    fim = Math.max(
+      fim,
+      timeToMinutes(agendamento.horario) + agendamento.duracaoMinutos,
+    )
+  }
+
+  return {
+    inicio: minutesToTime(inicio),
+    fim: minutesToTime(fim),
+  }
+}
+
 export function getBarbeiroAgendamentosDoDia(
   agendamentos: AgendamentoEnriquecido[],
   data: string,
@@ -219,7 +248,13 @@ export function getClickableHorarios(
   for (const gap of freeIntervals) {
     if (gap.end - gap.start < AGENDA_BOOKING_STEP_MINUTES) continue
 
-    clickable.add(minutesToTime(gap.start))
+    const gapStartHorario = minutesToTime(gap.start)
+    if (
+      !isInstantOccupied(agendamentos, barbeiro.id, gapStartHorario) &&
+      !isSlotOccupied(agendamentos, barbeiro.id, gapStartHorario)
+    ) {
+      clickable.add(gapStartHorario)
+    }
 
     for (
       let time = gap.start;
