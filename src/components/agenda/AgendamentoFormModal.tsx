@@ -1,5 +1,6 @@
 import { Modal } from '@/components/ui/Modal'
 import { AgendamentoForm } from '@/components/agenda/AgendamentoForm'
+import { useEmpresaConfig } from '@/hooks/useEmpresaConfig'
 import type { AgendamentoEnriquecido, AgendamentoFormData } from '@/types/agendamento'
 import type { Cliente } from '@/types/cliente'
 import type { Barbeiro } from '@/types/barbeiro'
@@ -34,6 +35,7 @@ export function AgendamentoFormModal({
   intervaloSlots,
 }: AgendamentoFormModalProps) {
   const isEditing = !!agendamento
+  const { config: empresaConfig } = useEmpresaConfig()
 
   async function handleSubmit(data: AgendamentoFormData) {
     await onSubmit(data)
@@ -62,6 +64,7 @@ export function AgendamentoFormModal({
         onCancelAgendamento={onCancelAgendamento}
         isEditing={isEditing}
         submitLabel={isEditing ? 'Salvar alterações' : 'Agendar'}
+        empresaNome={empresaConfig?.nome}
       />
     </Modal>
   )

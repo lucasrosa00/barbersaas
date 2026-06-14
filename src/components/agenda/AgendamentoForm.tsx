@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { MessageCircle } from 'lucide-react'
 import { AGENDAMENTO_STATUS } from '@/constants/agendamentoStatus'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
@@ -17,6 +18,7 @@ import {
   getHorariosDisponiveis,
   hasConflict,
 } from '@/utils/agenda'
+import { buildAgendamentoConfirmacaoWhatsAppUrl } from '@/utils/whatsapp'
 
 const statusValues = AGENDAMENTO_STATUS.map((s) => s.value) as [
   AgendamentoFormData['status'],
@@ -36,6 +38,7 @@ interface AgendamentoFormProps {
   onCancelAgendamento?: () => void
   submitLabel?: string
   isEditing?: boolean
+  empresaNome?: string
 }
 
 export function AgendamentoForm({
@@ -51,6 +54,7 @@ export function AgendamentoForm({
   onCancelAgendamento,
   submitLabel = 'Salvar',
   isEditing = false,
+  empresaNome,
 }: AgendamentoFormProps) {
   const agendamentoSchema = useMemo(
     () =>
@@ -166,6 +170,40 @@ export function AgendamentoForm({
       ? formatHorarioIntervalo(horario, servicoSelecionado.duracaoMinutos)
       : null
 
+  const whatsappConfirmacaoUrl = useMemo(() => {
+    if (!isEditing || !clienteSelecionado?.telefone || !horario || !dataSelecionada) {
+      return null
+    }
+
+    const servicoNome = servicoSelecionado?.nome ?? defaultValues?.servicoNome
+    const barbeiroNome = barbeiroSelecionado?.nome ?? defaultValues?.barbeiroNome
+    const duracaoMinutos =
+      servicoSelecionado?.duracaoMinutos ?? defaultValues?.duracaoMinutos
+
+    if (!servicoNome || !barbeiroNome || !duracaoMinutos) return null
+
+    return buildAgendamentoConfirmacaoWhatsAppUrl(clienteSelecionado.telefone, {
+      clienteNome: clienteSelecionado.nome,
+      data: dataSelecionada,
+      horario,
+      duracaoMinutos,
+      servicoNome,
+      barbeiroNome,
+      empresaNome,
+    })
+  }, [
+    isEditing,
+    clienteSelecionado,
+    horario,
+    dataSelecionada,
+    servicoSelecionado,
+    barbeiroSelecionado,
+    defaultValues?.servicoNome,
+    defaultValues?.barbeiroNome,
+    defaultValues?.duracaoMinutos,
+    empresaNome,
+  ])
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
@@ -178,7 +216,7 @@ export function AgendamentoForm({
         />
 
         {isEditing && clienteSelecionado && (
-          <div className="space-y-1.5 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm">
+          <div className="space-y-2.5 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm">
             <p className="text-neutral-700">
               <span className="font-medium text-neutral-500">Telefone: </span>
               <a
@@ -195,6 +233,18 @@ export function AgendamentoForm({
               </p>
             ) : (
               <p className="text-neutral-400">Sem observações cadastradas</p>
+            )}
+
+            {whatsappConfirmacaoUrl && (
+              <a
+                href={whatsappConfirmacaoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#25D366] px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-[#20bd5a] sm:w-auto"
+              >
+                <MessageCircle className="h-4 w-4" />
+                Enviar confirmação no WhatsApp
+              </a>
             )}
           </div>
         )}
