@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { labels } from '@/constants/terminology'
 import type { Barbeiro } from '@/types/barbeiro'
 import type { AgendamentoEnriquecido } from '@/types/agendamento'
 import type { Servico } from '@/types/servico'
@@ -254,7 +255,7 @@ export function AgendaGrid({
     return (
       <div className="rounded-xl border border-dashed border-neutral-200 bg-neutral-50 px-6 py-16 text-center">
         <p className="text-sm text-neutral-500">
-          Nenhum barbeiro cadastrado para exibir a agenda.
+          {labels.professional.noneForAgenda}
         </p>
       </div>
     )

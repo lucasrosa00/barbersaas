@@ -7,6 +7,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { SearchInput } from '@/components/ui/SearchInput'
 import { useAuth } from '@/hooks/useAuth'
 import { useBarbeiros } from '@/hooks/useBarbeiros'
+import { labels } from '@/constants/terminology'
 import type { Barbeiro, BarbeiroFormData } from '@/types/barbeiro'
 
 export function BarbeirosPage() {
@@ -63,7 +64,9 @@ export function BarbeirosPage() {
         <div>
           <p className="text-sm text-neutral-500">
             {total}{' '}
-            {total === 1 ? 'barbeiro cadastrado' : 'barbeiros cadastrados'}
+            {total === 1
+              ? labels.professional.registeredCount(1)
+              : labels.professional.registeredCount(total)}
           </p>
         </div>
 
@@ -75,7 +78,7 @@ export function BarbeirosPage() {
           />
           <Button onClick={handleOpenCreate} className="w-full">
             <Plus className="h-4 w-4" />
-            Novo Barbeiro
+            {labels.professional.new}
           </Button>
         </div>
       </div>
@@ -97,7 +100,7 @@ export function BarbeirosPage() {
         open={!!deletingBarbeiro}
         onClose={() => setDeletingBarbeiro(undefined)}
         onConfirm={handleConfirmDelete}
-        title="Excluir barbeiro"
+        title={labels.professional.deleteTitle}
         description={`Tem certeza que deseja excluir "${deletingBarbeiro?.nome}"? Esta ação não pode ser desfeita.`}
         confirmLabel="Excluir"
       />

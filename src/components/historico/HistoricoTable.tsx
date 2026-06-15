@@ -3,6 +3,7 @@ import {
   getStatusStyles,
 } from '@/constants/agendamentoStatus'
 import type { HistoricoAtendimento } from '@/types/historico'
+import { labels } from '@/constants/terminology'
 import { formatCurrency } from '@/utils/formatCurrency'
 import { formatDateBR } from '@/utils/timeSlots'
 
@@ -46,7 +47,7 @@ export function HistoricoTable({ registros }: HistoricoTableProps) {
                 <dd className="text-neutral-600">{formatDateBR(registro.data)}</dd>
               </div>
               <div className="flex justify-between gap-4">
-                <dt className="text-neutral-500">Barbeiro</dt>
+                <dt className="text-neutral-500">{labels.professional.one}</dt>
                 <dd className="text-neutral-600">{registro.barbeiroNome}</dd>
               </div>
               <div className="flex justify-between gap-4">
@@ -68,7 +69,9 @@ export function HistoricoTable({ registros }: HistoricoTableProps) {
                 <th className="px-4 py-3 font-medium text-neutral-500">Data</th>
                 <th className="px-4 py-3 font-medium text-neutral-500">Cliente</th>
                 <th className="px-4 py-3 font-medium text-neutral-500">Serviço</th>
-                <th className="px-4 py-3 font-medium text-neutral-500">Barbeiro</th>
+                <th className="px-4 py-3 font-medium text-neutral-500">
+                  {labels.professional.one}
+                </th>
                 <th className="px-4 py-3 font-medium text-neutral-500">Valor</th>
                 <th className="px-4 py-3 font-medium text-neutral-500">Status</th>
               </tr>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Scissors } from 'lucide-react'
+import { Building2 } from 'lucide-react'
 
 type EmpresaLogoSize = 'sm' | 'md' | 'lg'
 
@@ -47,7 +47,7 @@ export function EmpresaLogo({
   if (showFallback) {
     return (
       <div className={containerClass} title={alt}>
-        <Scissors
+        <Building2
           className={`${iconSizes[size]} ${variant === 'light' ? 'text-neutral-400' : 'text-neutral-500'}`}
           aria-hidden
         />

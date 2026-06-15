@@ -1,9 +1,9 @@
 {
   "public": "dist",
   "rewrites": [
-    { "source": "/barbearia/assets/:path*", "destination": "/assets/:path*" },
-    { "source": "/barbearia", "destination": "/index.html" },
-    { "source": "/barbearia/", "destination": "/index.html" },
-    { "source": "/barbearia/:path*", "destination": "/index.html" }
+    { "source": "/agendamento/assets/:path*", "destination": "/assets/:path*" },
+    { "source": "/agendamento", "destination": "/index.html" },
+    { "source": "/agendamento/", "destination": "/index.html" },
+    { "source": "/agendamento/:path*", "destination": "/index.html" }
   ]
 }

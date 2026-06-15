@@ -2,6 +2,7 @@ import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { DIAS_SEMANA, type DiaSemana } from '@/constants/diasSemana'
+import { labels } from '@/constants/terminology'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
 import { Input } from '@/components/ui/Input'
@@ -16,7 +17,7 @@ const barbeiroSchema = z
   .object({
     nome: z.string().min(1, 'Nome é obrigatório'),
     telefone: z.string().min(1, 'Telefone é obrigatório'),
-    especialidadesInput: z.string().min(1, 'Informe ao menos uma especialidade'),
+    especialidadesInput: z.string().min(1, labels.specialties.required),
     diasTrabalho: z
       .array(z.enum(diaSemanaValues))
       .min(1, 'Selecione ao menos um dia'),
@@ -98,13 +99,13 @@ export function BarbeiroForm({
       />
 
       <Input
-        label="Especialidades"
-        placeholder="Corte, Barba, Degradê"
+        label={labels.specialties.label}
+        placeholder={labels.specialties.placeholder}
         error={errors.especialidadesInput?.message}
         {...register('especialidadesInput')}
       />
       <p className="-mt-2 text-xs text-neutral-500">
-        Separe as especialidades por vírgula
+        {labels.specialties.hint}
       </p>
 
       <div className="space-y-2">

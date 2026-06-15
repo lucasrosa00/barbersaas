@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { appBasename } from '@/config/app'
+import { ROUTES } from '@/constants/terminology'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { PublicRoute } from '@/components/auth/PublicRoute'
 import { MainLayout } from '@/components/layout/MainLayout'
@@ -38,7 +39,8 @@ export const router = createBrowserRouter(
         children: [
           { path: '/dashboard', element: <DashboardPage /> },
           { path: '/clientes', element: <ClientesPage /> },
-          { path: '/barbeiros', element: <BarbeirosPage /> },
+          { path: ROUTES.professionals, element: <BarbeirosPage /> },
+          { path: '/barbeiros', element: <Navigate to={ROUTES.professionals} replace /> },
           { path: '/servicos', element: <ServicosPage /> },
           { path: '/agenda', element: <AgendaPage /> },
           { path: '/lista-espera', element: <ListaEsperaPage /> },

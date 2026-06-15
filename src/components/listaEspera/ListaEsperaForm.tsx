@@ -1,6 +1,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { labels } from '@/constants/terminology'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
 import { Input } from '@/components/ui/Input'
@@ -69,7 +70,7 @@ export function ListaEsperaForm({
       />
 
       <Select
-        label="Barbeiro preferencial"
+        label={labels.professional.preferred}
         options={[
           { value: '', label: 'Sem preferência' },
           ...barbeiros.map((b) => ({ value: b.id, label: b.nome })),

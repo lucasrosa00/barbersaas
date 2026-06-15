@@ -22,7 +22,7 @@ export function getSlots(
   return generateTimeSlots(inicio, fim, AGENDA_GRID_MINUTES)
 }
 
-/** Faixa horária da grade — cobre empresa, barbeiros visíveis e agendamentos do dia */
+/** Faixa horária da grade — cobre empresa, profissionais visíveis e agendamentos do dia */
 export function getAgendaDisplayRange(
   barbeiros: Barbeiro[],
   agendamentos: AgendamentoEnriquecido[],

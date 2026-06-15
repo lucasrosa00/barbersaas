@@ -1,6 +1,7 @@
 import { Menu } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import { getNavItemByPath } from '@/config/navigation'
+import { labels } from '@/constants/terminology'
 import { useAuth } from '@/hooks/useAuth'
 
 interface HeaderProps {
@@ -27,7 +28,7 @@ export function Header({ onMenuClick }: HeaderProps) {
         )}
         <div className="min-w-0">
           <h1 className="truncate text-base font-semibold text-neutral-900 sm:text-lg">
-            {currentNav?.label ?? 'BarberSaaS'}
+            {currentNav?.label ?? labels.appName}
           </h1>
           <p className="truncate text-xs text-neutral-500">{user?.empresa.nome}</p>
         </div>

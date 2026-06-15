@@ -1,6 +1,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { labels } from '@/constants/terminology'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
 import { Input } from '@/components/ui/Input'
@@ -62,7 +63,7 @@ export function MovimentacaoForm({
 
       <Input
         label="Descrição"
-        placeholder="Ex: Compra de produtos, Corte avulso..."
+        placeholder={labels.movement.descriptionPlaceholder}
         error={errors.descricao?.message}
         {...register('descricao')}
       />
@@ -87,8 +88,8 @@ export function MovimentacaoForm({
       </div>
 
       <Select
-        label="Barbeiro"
-        placeholder="Nenhum (opcional)"
+        label={labels.professional.optional}
+        placeholder={labels.professional.optionalNone}
         options={barbeiros.map((b) => ({ value: b.id, label: b.nome }))}
         error={errors.barbeiroId?.message}
         {...register('barbeiroId')}

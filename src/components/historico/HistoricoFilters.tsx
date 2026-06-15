@@ -1,6 +1,7 @@
 import { Filter, X } from 'lucide-react'
 import type { HistoricoFiltros } from '@/types/historico'
 import type { Cliente } from '@/types/cliente'
+import { labels } from '@/constants/terminology'
 import type { Barbeiro } from '@/types/barbeiro'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -49,11 +50,11 @@ export function HistoricoFilters({
         />
 
         <Select
-          label="Barbeiro"
+          label={labels.professional.one}
           value={filtros.barbeiroId}
           onChange={(e) => onUpdate('barbeiroId', e.target.value)}
           options={[
-            { value: '', label: 'Todos os barbeiros' },
+            { value: '', label: labels.professional.all },
             ...barbeiros.map((b) => ({ value: b.id, label: b.nome })),
           ]}
         />

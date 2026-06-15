@@ -1,4 +1,5 @@
 import { Modal } from '@/components/ui/Modal'
+import { labels } from '@/constants/terminology'
 import { BarbeiroForm } from '@/components/barbeiros/BarbeiroForm'
 import type { Barbeiro, BarbeiroFormData } from '@/types/barbeiro'
 
@@ -26,7 +27,7 @@ export function BarbeiroFormModal({
     <Modal
       open={open}
       onClose={onClose}
-      title={isEditing ? 'Editar Barbeiro' : 'Novo Barbeiro'}
+      title={isEditing ? labels.professional.edit : labels.professional.new}
     >
       <BarbeiroForm
         key={barbeiro?.id ?? 'new'}

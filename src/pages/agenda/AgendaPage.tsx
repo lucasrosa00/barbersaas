@@ -16,6 +16,7 @@ import type {
   AgendamentoEnriquecido,
   AgendamentoFormData,
 } from '@/types/agendamento'
+import { labels } from '@/constants/terminology'
 import { addDays, formatDateBR } from '@/utils/timeSlots'
 import {
   AGENDAMENTO_STATUS,
@@ -219,7 +220,7 @@ export function AgendaPage() {
       {!isDesktop && barbeiros.length > 0 && (
         <div className="rounded-xl border border-neutral-200 bg-white p-4 lg:hidden">
           <Select
-            label="Barbeiro"
+            label={labels.professional.one}
             value={selectedBarbeiroId}
             onChange={(e) => setSelectedBarbeiroId(e.target.value)}
             options={barbeiros.map((b) => ({
@@ -229,7 +230,7 @@ export function AgendaPage() {
           />
           {barbeiroSelecionado && (
             <p className="mt-2 text-xs text-neutral-500">
-              Exibindo a agenda de {barbeiroSelecionado.nome}
+              {labels.professional.showingAgenda(barbeiroSelecionado.nome)}
             </p>
           )}
         </div>

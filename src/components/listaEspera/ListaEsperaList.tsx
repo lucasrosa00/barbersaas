@@ -3,11 +3,12 @@ import {
   ArrowUp,
   Calendar,
   CalendarCheck,
-  Scissors,
+  ClipboardList,
   Trash2,
   User,
 } from 'lucide-react'
 import type { ListaEsperaItem } from '@/types/listaEspera'
+import { labels } from '@/constants/terminology'
 import { Button } from '@/components/ui/Button'
 import { formatDateBR } from '@/utils/timeSlots'
 
@@ -55,7 +56,7 @@ export function ListaEsperaList({
 
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-neutral-500">
               <span className="flex items-center gap-1.5">
-                <Scissors className="h-3.5 w-3.5" />
+                <ClipboardList className="h-3.5 w-3.5" />
                 {item.servicoNome}
               </span>
               <span className="flex items-center gap-1.5">
@@ -63,7 +64,7 @@ export function ListaEsperaList({
                 {formatDateBR(item.dataSolicitada)}
               </span>
               <span className="text-neutral-500">
-                Barbeiro: {item.barbeiroNome}
+                {labels.professional.one}: {item.barbeiroNome}
               </span>
             </div>
           </div>

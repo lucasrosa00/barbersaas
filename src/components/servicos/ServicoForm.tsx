@@ -1,6 +1,7 @@
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { labels } from '@/constants/terminology'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
 import { Input } from '@/components/ui/Input'
@@ -15,7 +16,7 @@ const servicoSchema = z.object({
     .min(5, 'Duração mínima de 5 minutos'),
   barbeirosDisponiveis: z
     .array(z.string())
-    .min(1, 'Selecione ao menos um barbeiro'),
+    .min(1, labels.professional.selectAtLeastOne),
 })
 
 interface BarbeiroOption {
@@ -57,7 +58,7 @@ export function ServicoForm({
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <Input
         label="Nome"
-        placeholder="Ex: Corte Masculino"
+        placeholder={labels.service.namePlaceholder}
         error={errors.nome?.message}
         {...register('nome')}
       />
@@ -85,12 +86,12 @@ export function ServicoForm({
 
       <div className="space-y-2">
         <span className="block text-sm font-medium text-neutral-600">
-          Barbeiros disponíveis
+          {labels.professional.available}
         </span>
 
         {barbeiros.length === 0 ? (
           <p className="text-sm text-neutral-500">
-            Nenhum barbeiro cadastrado nesta empresa.
+            {labels.professional.noneRegisteredInCompany}
           </p>
         ) : (
           <div className="flex flex-wrap gap-2">

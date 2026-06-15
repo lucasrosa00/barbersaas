@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { MessageCircle } from 'lucide-react'
+import { labels } from '@/constants/terminology'
 import { AGENDAMENTO_STATUS } from '@/constants/agendamentoStatus'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
@@ -61,7 +62,7 @@ export function AgendamentoForm({
       z
         .object({
           clienteId: z.string().min(1, 'Selecione um cliente'),
-          barbeiroId: z.string().min(1, 'Selecione um barbeiro'),
+          barbeiroId: z.string().min(1, labels.professional.selectRequired),
           servicoId: z.string().min(1, 'Selecione um serviço'),
           data: z.string().min(1, 'Data é obrigatória'),
           horario: z.string().min(1, 'Horário é obrigatório'),
@@ -251,8 +252,8 @@ export function AgendamentoForm({
       </div>
 
       <Select
-        label="Barbeiro"
-        placeholder="Selecione o barbeiro"
+        label={labels.professional.one}
+        placeholder={labels.professional.select}
         options={barbeiros.map((b) => ({ value: b.id, label: b.nome }))}
         error={errors.barbeiroId?.message}
         {...register('barbeiroId')}
@@ -294,7 +295,7 @@ export function AgendamentoForm({
               Horário de início
             </span>
             <p className="rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-500">
-              Selecione barbeiro e serviço
+              {labels.professional.selectWithService}
             </p>
           </div>
         )}
@@ -311,8 +312,7 @@ export function AgendamentoForm({
         servicoSelecionado &&
         horariosDisponiveis.length === 0 && (
           <p className="text-xs text-neutral-700">
-            Nenhum horário disponível para este barbeiro com a duração do
-            serviço selecionado.
+            {labels.professional.noSlots}
           </p>
         )}
 

@@ -1,3 +1,4 @@
+import { labels } from '@/constants/terminology'
 import type { Barbeiro } from '@/types/barbeiro'
 import { BarbeiroCard } from '@/components/barbeiros/BarbeiroCard'
 
@@ -15,7 +16,7 @@ export function BarbeirosGrid({
   if (barbeiros.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-neutral-200 bg-neutral-50 px-6 py-16 text-center">
-        <p className="text-sm text-neutral-500">Nenhum barbeiro encontrado.</p>
+        <p className="text-sm text-neutral-500">{labels.professional.noneFound}</p>
       </div>
     )
   }
