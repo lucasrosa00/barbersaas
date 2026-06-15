@@ -8,6 +8,7 @@ import {
 } from 'react'
 import { setUnauthorizedHandler } from '@/services/api/client'
 import { authService } from '@/services/auth/authService'
+import { resolveAppPath } from '@/config/app'
 import type { AuthUser, Empresa, LoginCredentials } from '@/types/auth'
 
 interface AuthContextValue {
@@ -51,7 +52,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       authService.clearSession()
       setUser(null)
       setToken(null)
-      window.location.href = '/login'
+      window.location.href = resolveAppPath('/login')
     })
 
     return () => setUnauthorizedHandler(null)
