@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { MessageCircle } from 'lucide-react'
@@ -8,6 +8,7 @@ import { AGENDAMENTO_STATUS } from '@/constants/agendamentoStatus'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
 import { Input } from '@/components/ui/Input'
+import { Combobox } from '@/components/ui/Combobox'
 import { Select } from '@/components/ui/Select'
 import type { AgendamentoEnriquecido, AgendamentoFormData } from '@/types/agendamento'
 import type { Cliente } from '@/types/cliente'
@@ -98,6 +99,7 @@ export function AgendamentoForm({
     handleSubmit,
     watch,
     setValue,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<AgendamentoFormData>({
     resolver: zodResolver(agendamentoSchema),
@@ -205,15 +207,27 @@ export function AgendamentoForm({
     empresaNome,
   ])
 
+  const clienteOptions = useMemo(
+    () => clientes.map((c) => ({ value: c.id, label: c.nome })),
+    [clientes],
+  )
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
-        <Select
-          label="Cliente"
-          placeholder="Selecione o cliente"
-          options={clientes.map((c) => ({ value: c.id, label: c.nome }))}
-          error={errors.clienteId?.message}
-          {...register('clienteId')}
+        <Controller
+          name="clienteId"
+          control={control}
+          render={({ field }) => (
+            <Combobox
+              label="Cliente"
+              placeholder="Digite o nome do cliente"
+              options={clienteOptions}
+              value={field.value}
+              onChange={field.onChange}
+              error={errors.clienteId?.message}
+            />
+          )}
         />
 
         {isEditing && clienteSelecionado && (
