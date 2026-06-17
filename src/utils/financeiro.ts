@@ -1,4 +1,9 @@
-import type { Movimentacao, DadoGrafico, ResumoFinanceiro } from '@/types/financeiro'
+import type {
+  FinanceiroData,
+  Movimentacao,
+  DadoGrafico,
+  ResumoFinanceiro,
+} from '@/types/financeiro'
 import { toISODate } from '@/utils/timeSlots'
 
 function parseDate(iso: string): Date {
@@ -110,4 +115,22 @@ export function calcularFaturamentoMensal(
   }
 
   return result
+}
+
+export function filterFinanceiroByBarbeiro(
+  data: FinanceiroData,
+  barbeiroId: string,
+): FinanceiroData {
+  if (!barbeiroId) return data
+
+  const movimentacoes = data.movimentacoes.filter(
+    (m) => m.barbeiroId === barbeiroId,
+  )
+
+  return {
+    resumo: calcularResumo(movimentacoes),
+    faturamentoDiario: calcularFaturamentoDiario(movimentacoes),
+    faturamentoMensal: calcularFaturamentoMensal(movimentacoes),
+    movimentacoes,
+  }
 }

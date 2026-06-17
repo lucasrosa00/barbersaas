@@ -18,6 +18,7 @@ interface FinanceiroApiResponse {
     tipo: TipoMovimentacao
     clienteNome?: string | null
     servicoNome?: string | null
+    barbeiroId?: string | null
     barbeiroNome?: string | null
   }>
 }
@@ -35,6 +36,7 @@ function mapMovimentacao(
     tipo: dto.tipo,
     clienteNome: dto.clienteNome ?? undefined,
     servicoNome: dto.servicoNome ?? undefined,
+    barbeiroId: dto.barbeiroId ?? undefined,
     barbeiroNome: dto.barbeiroNome ?? undefined,
   }
 }

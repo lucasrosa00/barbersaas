@@ -6,6 +6,7 @@ export interface Movimentacao {
   descricao: string
   clienteNome?: string
   servicoNome?: string
+  barbeiroId?: string
   barbeiroNome?: string
   data: string
   valor: number
