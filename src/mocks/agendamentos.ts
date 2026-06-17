@@ -11,6 +11,7 @@ export const mockAgendamentos: Agendamento[] = [
     servicoId: 'srv-001',
     data: hoje,
     horario: '09:00',
+    duracaoMinutos: 30,
     status: 'confirmado',
   },
   {
@@ -21,6 +22,7 @@ export const mockAgendamentos: Agendamento[] = [
     servicoId: 'srv-002',
     data: hoje,
     horario: '09:30',
+    duracaoMinutos: 25,
     status: 'agendado',
   },
   {
@@ -31,6 +33,7 @@ export const mockAgendamentos: Agendamento[] = [
     servicoId: 'srv-003',
     data: hoje,
     horario: '10:00',
+    duracaoMinutos: 50,
     status: 'em_atendimento',
   },
   {
@@ -41,6 +44,7 @@ export const mockAgendamentos: Agendamento[] = [
     servicoId: 'srv-002',
     data: hoje,
     horario: '09:00',
+    duracaoMinutos: 25,
     status: 'finalizado',
   },
   {
@@ -51,6 +55,7 @@ export const mockAgendamentos: Agendamento[] = [
     servicoId: 'srv-001',
     data: hoje,
     horario: '10:00',
+    duracaoMinutos: 30,
     status: 'agendado',
   },
   {
@@ -61,6 +66,7 @@ export const mockAgendamentos: Agendamento[] = [
     servicoId: 'srv-001',
     data: hoje,
     horario: '10:30',
+    duracaoMinutos: 30,
     status: 'confirmado',
   },
   {
@@ -71,6 +77,7 @@ export const mockAgendamentos: Agendamento[] = [
     servicoId: 'srv-004',
     data: hoje,
     horario: '09:00',
+    duracaoMinutos: 40,
     status: 'confirmado',
   },
   {
@@ -81,6 +88,7 @@ export const mockAgendamentos: Agendamento[] = [
     servicoId: 'srv-005',
     data: hoje,
     horario: '10:15',
+    duracaoMinutos: 30,
     status: 'agendado',
   },
 ]

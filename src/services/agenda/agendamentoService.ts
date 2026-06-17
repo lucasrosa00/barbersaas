@@ -44,6 +44,7 @@ function toRequestBody(data: AgendamentoFormData) {
     data: data.data,
     horario: data.horario,
     status: data.status,
+    duracaoMinutos: data.duracaoMinutos,
   }
 }
 

@@ -204,6 +204,7 @@ export function AgendaPage() {
         servicoId: pendingMove.agendamento.servicoId,
         data: pendingMove.agendamento.data,
         horario: pendingMove.horario,
+        duracaoMinutos: pendingMove.agendamento.duracaoMinutos,
         status: pendingMove.agendamento.status,
       })
       setPendingMove(null)

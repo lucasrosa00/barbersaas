@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -16,6 +16,7 @@ import type { Barbeiro } from '@/types/barbeiro'
 import type { Servico } from '@/types/servico'
 import type { IntervaloSlot } from '@/types/empresaConfig'
 import {
+  AGENDA_BOOKING_STEP_MINUTES,
   formatHorarioIntervalo,
   getHorariosDisponiveis,
   hasConflict,
@@ -67,12 +68,15 @@ export function AgendamentoForm({
           servicoId: z.string().min(1, 'Selecione um serviço'),
           data: z.string().min(1, 'Data é obrigatória'),
           horario: z.string().min(1, 'Horário é obrigatório'),
+          duracaoMinutos: z.coerce
+            .number()
+            .int('Duração deve ser um número inteiro')
+            .min(5, 'Duração mínima de 5 minutos'),
           status: z.enum(statusValues),
         })
         .superRefine((data, ctx) => {
           const barbeiro = barbeiros.find((b) => b.id === data.barbeiroId)
-          const servico = servicos.find((s) => s.id === data.servicoId)
-          if (!barbeiro || !servico) return
+          if (!barbeiro) return
 
           if (
             hasConflict(
@@ -80,7 +84,7 @@ export function AgendamentoForm({
               data.data,
               data.barbeiroId,
               data.horario,
-              servico.duracaoMinutos,
+              data.duracaoMinutos,
               editingId,
             )
           ) {
@@ -91,8 +95,10 @@ export function AgendamentoForm({
             })
           }
         }),
-    [agendamentos, barbeiros, servicos, editingId],
+    [agendamentos, barbeiros, editingId],
   )
+
+  const servicoInicial = servicos.find((s) => s.id === defaultValues?.servicoId)
 
   const {
     register,
@@ -112,6 +118,8 @@ export function AgendamentoForm({
           ? defaultValues.data
           : new Date().toISOString().split('T')[0],
       horario: defaultValues?.horario ?? '',
+      duracaoMinutos:
+        defaultValues?.duracaoMinutos ?? servicoInicial?.duracaoMinutos ?? 30,
       status: defaultValues?.status ?? 'agendado',
     },
   })
@@ -122,6 +130,7 @@ export function AgendamentoForm({
   const horario = watch('horario')
   const dataSelecionada = watch('data')
   const status = watch('status')
+  const duracaoMinutos = watch('duracaoMinutos')
 
   const clienteSelecionado = clientes.find((c) => c.id === clienteId)
   const barbeiroSelecionado = barbeiros.find((b) => b.id === barbeiroId)
@@ -131,12 +140,23 @@ export function AgendamentoForm({
     (s) => !barbeiroId || s.barbeirosDisponiveis.includes(barbeiroId),
   )
 
+  const previousServicoId = useRef(servicoId)
+
+  useEffect(() => {
+    if (!servicoSelecionado || servicoId === previousServicoId.current) return
+
+    setValue('duracaoMinutos', servicoSelecionado.duracaoMinutos)
+    previousServicoId.current = servicoId
+  }, [servicoId, servicoSelecionado, setValue])
+
   const horariosDisponiveis = useMemo(() => {
     if (!barbeiroSelecionado || !servicoSelecionado || !dataSelecionada) return []
+    if (!duracaoMinutos || duracaoMinutos < 5) return []
+
     return getHorariosDisponiveis(
       barbeiroSelecionado,
       agendamentos,
-      servicoSelecionado.duracaoMinutos,
+      duracaoMinutos,
       dataSelecionada,
       intervaloSlots,
       editingId,
@@ -146,6 +166,7 @@ export function AgendamentoForm({
     barbeiroSelecionado,
     servicoSelecionado,
     dataSelecionada,
+    duracaoMinutos,
     agendamentos,
     intervaloSlots,
     editingId,
@@ -172,9 +193,13 @@ export function AgendamentoForm({
     status !== 'finalizado'
 
   const intervaloPreview =
-    servicoSelecionado && horario
-      ? formatHorarioIntervalo(horario, servicoSelecionado.duracaoMinutos)
+    horario && duracaoMinutos >= 5
+      ? formatHorarioIntervalo(horario, duracaoMinutos)
       : null
+
+  const duracaoPadraoServico = servicoSelecionado?.duracaoMinutos
+  const duracaoPersonalizada =
+    duracaoPadraoServico !== undefined && duracaoMinutos !== duracaoPadraoServico
 
   const whatsappConfirmacaoUrl = useMemo(() => {
     if (!isEditing || !clienteSelecionado?.telefone || !horario || !dataSelecionada) {
@@ -183,8 +208,6 @@ export function AgendamentoForm({
 
     const servicoNome = servicoSelecionado?.nome ?? defaultValues?.servicoNome
     const barbeiroNome = barbeiroSelecionado?.nome ?? defaultValues?.barbeiroNome
-    const duracaoMinutos =
-      servicoSelecionado?.duracaoMinutos ?? defaultValues?.duracaoMinutos
 
     if (!servicoNome || !barbeiroNome || !duracaoMinutos) return null
 
@@ -202,11 +225,11 @@ export function AgendamentoForm({
     clienteSelecionado,
     horario,
     dataSelecionada,
+    duracaoMinutos,
     servicoSelecionado,
     barbeiroSelecionado,
     defaultValues?.servicoNome,
     defaultValues?.barbeiroNome,
-    defaultValues?.duracaoMinutos,
     empresaNome,
   ])
 
@@ -288,6 +311,24 @@ export function AgendamentoForm({
         {...register('servicoId')}
       />
 
+      {servicoSelecionado && (
+        <div className="space-y-1.5">
+          <Input
+            label="Duração do atendimento (min)"
+            type="number"
+            min={5}
+            step={AGENDA_BOOKING_STEP_MINUTES}
+            error={errors.duracaoMinutos?.message}
+            {...register('duracaoMinutos', { valueAsNumber: true })}
+          />
+          <p className="text-xs text-neutral-500">
+            {duracaoPersonalizada
+              ? `Padrão do serviço: ${duracaoPadraoServico} min`
+              : 'Vem do cadastro do serviço; altere se necessário para este cliente'}
+          </p>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Input
           label="Data"
@@ -296,12 +337,12 @@ export function AgendamentoForm({
           {...register('data')}
         />
 
-        {barbeiroSelecionado && servicoSelecionado ? (
+        {barbeiroSelecionado && servicoSelecionado && duracaoMinutos >= 5 ? (
           <Select
             label="Horário de início"
             options={horariosDisponiveis.map((h) => ({
               value: h,
-              label: formatHorarioIntervalo(h, servicoSelecionado.duracaoMinutos),
+              label: formatHorarioIntervalo(h, duracaoMinutos),
             }))}
             error={errors.horario?.message}
             {...register('horario')}
@@ -320,13 +361,17 @@ export function AgendamentoForm({
 
       {intervaloPreview && (
         <p className="text-xs text-neutral-900">
-          Duração: {servicoSelecionado?.duracaoMinutos} min · Intervalo{' '}
-          {intervaloPreview}
+          Duração: {duracaoMinutos} min
+          {duracaoPersonalizada && duracaoPadraoServico !== undefined
+            ? ` (padrão: ${duracaoPadraoServico} min)`
+            : ''}{' '}
+          · Intervalo {intervaloPreview}
         </p>
       )}
 
       {barbeiroSelecionado &&
         servicoSelecionado &&
+        duracaoMinutos >= 5 &&
         horariosDisponiveis.length === 0 && (
           <p className="text-xs text-neutral-700">
             {labels.professional.noSlots}
@@ -369,6 +414,7 @@ export function AgendamentoForm({
             disabled={
               !barbeiroSelecionado ||
               !servicoSelecionado ||
+              duracaoMinutos < 5 ||
               horariosDisponiveis.length === 0
             }
             className="w-full sm:w-auto"

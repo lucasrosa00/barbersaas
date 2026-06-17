@@ -13,6 +13,7 @@ export interface Agendamento {
   servicoId: string
   data: string
   horario: string
+  duracaoMinutos: number
   status: AgendamentoStatus
 }
 
@@ -22,5 +23,4 @@ export interface AgendamentoEnriquecido extends Agendamento {
   clienteNome: string
   barbeiroNome: string
   servicoNome: string
-  duracaoMinutos: number
 }
