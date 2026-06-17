@@ -68,6 +68,7 @@ export function ListaEsperaPage() {
     await agendamentoService.create(empresaId, data)
     await removeItem(convertingItem.id)
     await loadAgendamentos()
+    setConvertOpen(false)
     setConvertingItem(undefined)
   }
 

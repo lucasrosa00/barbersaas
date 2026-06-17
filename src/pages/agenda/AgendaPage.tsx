@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { AgendaGrid } from '@/components/agenda/AgendaGrid'
 import { AgendamentoFormModal } from '@/components/agenda/AgendamentoFormModal'
 import { AgendamentoMoveModal } from '@/components/agenda/AgendamentoMoveModal'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
 import { useAuth } from '@/hooks/useAuth'
@@ -59,6 +60,13 @@ export function AgendaPage() {
     horario: string
   } | null>(null)
   const [isMoving, setIsMoving] = useState(false)
+  const [formKey, setFormKey] = useState('initial')
+  const [remarcarPrompt, setRemarcarPrompt] = useState<{
+    clienteId: string
+    barbeiroId: string
+    servicoId: string
+    clienteNome: string
+  } | null>(null)
 
   const isDesktop = useMediaQuery('(min-width: 1024px)')
 
@@ -89,6 +97,7 @@ export function AgendaPage() {
 
   function handleOpenCreate() {
     setEditingAgendamento(undefined)
+    setFormKey(`create-${Date.now()}`)
     setPrefilled({
       data: selectedDate,
       horario: '09:00',
@@ -102,6 +111,7 @@ export function AgendaPage() {
 
   function handleSlotClick(barbeiroId: string, horario: string) {
     setEditingAgendamento(undefined)
+    setFormKey(`slot-${barbeiroId}-${horario}`)
     setPrefilled({
       barbeiroId,
       horario,
@@ -113,6 +123,7 @@ export function AgendaPage() {
 
   function handleAgendamentoClick(agendamento: AgendamentoEnriquecido) {
     setEditingAgendamento(agendamento)
+    setFormKey(agendamento.id)
     setPrefilled(undefined)
     setFormOpen(true)
   }
@@ -124,11 +135,47 @@ export function AgendaPage() {
   }
 
   async function handleSubmit(data: AgendamentoFormData) {
-    if (editingAgendamento) {
-      await updateAgendamento(editingAgendamento.id, data)
+    const editing = editingAgendamento
+    const justFinalized =
+      !!editing &&
+      data.status === 'finalizado' &&
+      editing.status !== 'finalizado'
+
+    if (editing) {
+      await updateAgendamento(editing.id, data)
     } else {
       await createAgendamento(data)
     }
+
+    handleCloseForm()
+
+    if (justFinalized) {
+      const clienteNome =
+        clientes.find((c) => c.id === data.clienteId)?.nome ?? 'este cliente'
+      setRemarcarPrompt({
+        clienteId: data.clienteId,
+        barbeiroId: data.barbeiroId,
+        servicoId: data.servicoId,
+        clienteNome,
+      })
+    }
+  }
+
+  function handleConfirmRemarcar() {
+    if (!remarcarPrompt) return
+
+    setEditingAgendamento(undefined)
+    setPrefilled({
+      clienteId: remarcarPrompt.clienteId,
+      barbeiroId: remarcarPrompt.barbeiroId,
+      servicoId: remarcarPrompt.servicoId,
+      status: 'agendado',
+      data: '',
+      horario: '',
+    })
+    setFormKey(`remarcar-${Date.now()}`)
+    setRemarcarPrompt(null)
+    setFormOpen(true)
   }
 
   async function handleCancelAgendamento() {
@@ -279,6 +326,22 @@ export function AgendaPage() {
         barbeiros={barbeiros}
         servicos={servicos}
         intervaloSlots={intervaloSlots}
+        formKey={formKey}
+      />
+
+      <ConfirmDialog
+        open={!!remarcarPrompt}
+        onClose={() => setRemarcarPrompt(null)}
+        onConfirm={handleConfirmRemarcar}
+        title="Remarcar cliente"
+        description={
+          remarcarPrompt
+            ? `Deseja remarcar ${remarcarPrompt.clienteNome}? Você poderá escolher uma nova data e horário.`
+            : ''
+        }
+        confirmLabel="Sim, remarcar"
+        cancelLabel="Não"
+        confirmVariant="primary"
       />
 
       <AgendamentoMoveModal

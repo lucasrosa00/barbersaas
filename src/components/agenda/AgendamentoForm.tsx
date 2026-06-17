@@ -107,7 +107,10 @@ export function AgendamentoForm({
       clienteId: defaultValues?.clienteId ?? '',
       barbeiroId: defaultValues?.barbeiroId ?? '',
       servicoId: defaultValues?.servicoId ?? '',
-      data: defaultValues?.data ?? new Date().toISOString().split('T')[0],
+      data:
+        defaultValues?.data !== undefined
+          ? defaultValues.data
+          : new Date().toISOString().split('T')[0],
       horario: defaultValues?.horario ?? '',
       status: defaultValues?.status ?? 'agendado',
     },

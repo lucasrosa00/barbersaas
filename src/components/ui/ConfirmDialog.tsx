@@ -8,6 +8,8 @@ interface ConfirmDialogProps {
   title: string
   description: string
   confirmLabel?: string
+  cancelLabel?: string
+  confirmVariant?: 'primary' | 'danger'
   isLoading?: boolean
 }
 
@@ -18,6 +20,8 @@ export function ConfirmDialog({
   title,
   description,
   confirmLabel = 'Confirmar',
+  cancelLabel = 'Cancelar',
+  confirmVariant = 'danger',
   isLoading = false,
 }: ConfirmDialogProps) {
   return (
@@ -26,9 +30,14 @@ export function ConfirmDialog({
 
       <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
         <Button variant="secondary" onClick={onClose} disabled={isLoading} className="w-full sm:w-auto">
-          Cancelar
+          {cancelLabel}
         </Button>
-        <Button variant="danger" onClick={onConfirm} isLoading={isLoading} className="w-full sm:w-auto">
+        <Button
+          variant={confirmVariant}
+          onClick={onConfirm}
+          isLoading={isLoading}
+          className="w-full sm:w-auto"
+        >
           {confirmLabel}
         </Button>
       </div>

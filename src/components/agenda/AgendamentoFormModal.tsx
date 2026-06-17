@@ -19,6 +19,7 @@ interface AgendamentoFormModalProps {
   barbeiros: Barbeiro[]
   servicos: Servico[]
   intervaloSlots: IntervaloSlot
+  formKey?: string
 }
 
 export function AgendamentoFormModal({
@@ -33,16 +34,18 @@ export function AgendamentoFormModal({
   barbeiros,
   servicos,
   intervaloSlots,
+  formKey,
 }: AgendamentoFormModalProps) {
   const isEditing = !!agendamento
   const { config: empresaConfig } = useEmpresaConfig()
 
   async function handleSubmit(data: AgendamentoFormData) {
     await onSubmit(data)
-    onClose()
   }
 
   const defaultValues = agendamento ?? prefilled
+  const resolvedFormKey =
+    formKey ?? agendamento?.id ?? `new-${prefilled?.barbeiroId ?? ''}-${prefilled?.horario ?? ''}`
 
   return (
     <Modal
@@ -51,7 +54,7 @@ export function AgendamentoFormModal({
       title={isEditing ? 'Editar Agendamento' : 'Novo Agendamento'}
     >
       <AgendamentoForm
-        key={agendamento?.id ?? `${prefilled?.barbeiroId}-${prefilled?.horario}`}
+        key={resolvedFormKey}
         defaultValues={defaultValues}
         agendamentos={agendamentos}
         editingId={agendamento?.id}
