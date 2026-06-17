@@ -1,9 +1,18 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { servicoService } from '@/services/servicos/servicoService'
 import type { Servico, ServicoFormData } from '@/types/servico'
+import { DEFAULT_PAGE_SIZE } from '@/types/pagination'
 
-export function useServicos(empresaId: string) {
+export interface UseServicosOptions {
+  all?: boolean
+}
+
+export function useServicos(empresaId: string, options: UseServicosOptions = {}) {
+  const all = options.all ?? false
   const [servicos, setServicos] = useState<Servico[]>([])
+  const [total, setTotal] = useState(0)
+  const [page, setPage] = useState(1)
+  const [pageSize] = useState(DEFAULT_PAGE_SIZE)
   const [search, setSearch] = useState('')
   const [isLoading, setIsLoading] = useState(true)
 
@@ -11,30 +20,45 @@ export function useServicos(empresaId: string) {
     if (!empresaId) return
     setIsLoading(true)
     try {
-      const data = await servicoService.list(empresaId)
-      setServicos(data)
+      if (all) {
+        const data = await servicoService.listAll(empresaId, search || undefined)
+        setServicos(data)
+        setTotal(data.length)
+      } else {
+        const result = await servicoService.listPaged(
+          empresaId,
+          page,
+          pageSize,
+          search || undefined,
+        )
+        setServicos(result.items)
+        setTotal(result.total)
+      }
     } finally {
       setIsLoading(false)
     }
-  }, [empresaId])
+  }, [empresaId, all, page, pageSize, search])
 
   useEffect(() => {
     loadServicos()
   }, [loadServicos])
 
-  const filteredServicos = useMemo(() => {
-    const term = search.trim().toLowerCase()
-    if (!term) return servicos
-    return servicos.filter((s) => s.nome.toLowerCase().includes(term))
-  }, [servicos, search])
+  useEffect(() => {
+    if (!all) setPage(1)
+  }, [search, all])
 
   const createServico = useCallback(
     async (data: ServicoFormData) => {
       const novo = await servicoService.create(empresaId, data)
-      setServicos((prev) => [...prev, novo])
+      if (all) {
+        setServicos((prev) => [...prev, novo])
+        setTotal((prev) => prev + 1)
+      } else {
+        await loadServicos()
+      }
       return novo
     },
-    [empresaId],
+    [empresaId, all, loadServicos],
   )
 
   const updateServico = useCallback(
@@ -46,14 +70,24 @@ export function useServicos(empresaId: string) {
     [empresaId],
   )
 
-  const deleteServico = useCallback(async (id: string) => {
-    await servicoService.delete(id)
-    setServicos((prev) => prev.filter((s) => s.id !== id))
-  }, [])
+  const deleteServico = useCallback(
+    async (id: string) => {
+      await servicoService.delete(id)
+      if (!all && servicos.length === 1 && page > 1) {
+        setPage((prev) => prev - 1)
+      } else {
+        await loadServicos()
+      }
+    },
+    [all, servicos.length, page, loadServicos],
+  )
 
   return {
-    servicos: filteredServicos,
-    total: servicos.length,
+    servicos,
+    total,
+    page,
+    pageSize,
+    setPage,
     search,
     setSearch,
     isLoading,

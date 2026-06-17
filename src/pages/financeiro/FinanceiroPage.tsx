@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { ResumoCards } from '@/components/financeiro/ResumoCards'
 import { FaturamentoChart } from '@/components/financeiro/FaturamentoChart'
@@ -11,23 +11,26 @@ import { labels } from '@/constants/terminology'
 import { useAuth } from '@/hooks/useAuth'
 import { useBarbeiros } from '@/hooks/useBarbeiros'
 import { useFinanceiro } from '@/hooks/useFinanceiro'
-import { filterFinanceiroByBarbeiro } from '@/utils/financeiro'
 import type { Movimentacao } from '@/types/financeiro'
 
 export function FinanceiroPage() {
   const { user } = useAuth()
   const empresaId = user?.empresaId ?? ''
-  const { data, isLoading, createMovimentacao, deleteMovimentacao } = useFinanceiro(empresaId)
+  const {
+    data,
+    isLoading,
+    page,
+    pageSize,
+    setPage,
+    barbeiroId,
+    setBarbeiroId,
+    createMovimentacao,
+    deleteMovimentacao,
+  } = useFinanceiro(empresaId)
   const { barbeiros } = useBarbeiros(empresaId)
   const [formOpen, setFormOpen] = useState(false)
-  const [barbeiroId, setBarbeiroId] = useState('')
   const [deletingMovimentacao, setDeletingMovimentacao] = useState<Movimentacao>()
   const [isDeleting, setIsDeleting] = useState(false)
-
-  const filteredData = useMemo(
-    () => (data ? filterFinanceiroByBarbeiro(data, barbeiroId) : null),
-    [data, barbeiroId],
-  )
 
   async function handleConfirmDelete() {
     if (!deletingMovimentacao) return
@@ -43,7 +46,7 @@ export function FinanceiroPage() {
 
   if (!user) return null
 
-  if (isLoading || !data || !filteredData) {
+  if (isLoading || !data) {
     return (
       <div className="flex justify-center py-16">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-900 border-t-transparent" />
@@ -78,22 +81,26 @@ export function FinanceiroPage() {
         </div>
       )}
 
-      <ResumoCards resumo={filteredData.resumo} />
+      <ResumoCards resumo={data.resumo} />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <FaturamentoChart
           title="Faturamento — últimos 7 dias"
-          data={filteredData.faturamentoDiario}
+          data={data.faturamentoDiario}
         />
         <FaturamentoChart
           title="Faturamento — últimos 6 meses"
-          data={filteredData.faturamentoMensal}
+          data={data.faturamentoMensal}
           color="#525252"
         />
       </div>
 
       <MovimentacoesTable
-        movimentacoes={filteredData.movimentacoes}
+        movimentacoes={data.movimentacoes.items}
+        page={page}
+        pageSize={pageSize}
+        total={data.movimentacoes.total}
+        onPageChange={setPage}
         onDelete={setDeletingMovimentacao}
       />
 

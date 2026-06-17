@@ -1,10 +1,15 @@
 import { Trash2 } from 'lucide-react'
+import { Pagination } from '@/components/ui/Pagination'
 import type { Movimentacao } from '@/types/financeiro'
 import { formatCurrency } from '@/utils/formatCurrency'
 import { formatDateBR } from '@/utils/timeSlots'
 
 interface MovimentacoesTableProps {
   movimentacoes: Movimentacao[]
+  page?: number
+  pageSize?: number
+  total?: number
+  onPageChange?: (page: number) => void
   onDelete?: (movimentacao: Movimentacao) => void
 }
 
@@ -29,7 +34,14 @@ function DeleteButton({
   )
 }
 
-export function MovimentacoesTable({ movimentacoes, onDelete }: MovimentacoesTableProps) {
+export function MovimentacoesTable({
+  movimentacoes,
+  page,
+  pageSize,
+  total,
+  onPageChange,
+  onDelete,
+}: MovimentacoesTableProps) {
   if (movimentacoes.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-neutral-200 bg-neutral-50 px-6 py-16 text-center">
@@ -155,6 +167,15 @@ export function MovimentacoesTable({ movimentacoes, onDelete }: MovimentacoesTab
           </tbody>
         </table>
       </div>
+
+      {page && pageSize && total !== undefined && onPageChange && (
+        <Pagination
+          page={page}
+          pageSize={pageSize}
+          total={total}
+          onPageChange={onPageChange}
+        />
+      )}
     </article>
   )
 }

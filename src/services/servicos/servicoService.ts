@@ -1,5 +1,8 @@
 import { apiClient } from '@/services/api/client'
+import { mapPagedResult } from '@/services/api/paged'
+import type { PagedResult } from '@/types/pagination'
 import type { Servico, ServicoFormData } from '@/types/servico'
+import { buildPaginationQuery } from '@/utils/pagination'
 
 interface ServicoApiDto {
   id: string
@@ -21,9 +24,24 @@ function mapServico(dto: ServicoApiDto, empresaId: string): Servico {
 }
 
 export const servicoService = {
-  async list(empresaId: string): Promise<Servico[]> {
-    const data = await apiClient<ServicoApiDto[]>('/servicos')
+  async listAll(empresaId: string, search?: string): Promise<Servico[]> {
+    const query = buildPaginationQuery({ all: true }, { search })
+    const data = await apiClient<ServicoApiDto[]>(`/servicos${query}`)
     return data.map((item) => mapServico(item, empresaId))
+  },
+
+  async listPaged(
+    empresaId: string,
+    page: number,
+    pageSize: number,
+    search?: string,
+  ): Promise<PagedResult<Servico>> {
+    const query = buildPaginationQuery({ page, pageSize }, { search })
+    const data = await apiClient<PagedResult<ServicoApiDto>>(`/servicos${query}`)
+    return {
+      ...mapPagedResult(data),
+      items: data.items.map((item) => mapServico(item, empresaId)),
+    }
   },
 
   async create(empresaId: string, data: ServicoFormData): Promise<Servico> {

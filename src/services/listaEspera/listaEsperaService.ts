@@ -1,5 +1,8 @@
 import { apiClient } from '@/services/api/client'
+import { mapPagedResult } from '@/services/api/paged'
+import type { PagedResult } from '@/types/pagination'
 import type { ListaEsperaFormData, ListaEsperaItem } from '@/types/listaEspera'
+import { buildPaginationQuery } from '@/utils/pagination'
 
 interface ListaEsperaApiDto {
   id: string
@@ -38,9 +41,19 @@ function toRequestBody(data: ListaEsperaFormData) {
 }
 
 export const listaEsperaService = {
-  async list(empresaId: string): Promise<ListaEsperaItem[]> {
-    const data = await apiClient<ListaEsperaApiDto[]>('/lista-espera')
-    return data.map((item) => mapItem(item, empresaId))
+  async listPaged(
+    empresaId: string,
+    page: number,
+    pageSize: number,
+  ): Promise<PagedResult<ListaEsperaItem>> {
+    const query = buildPaginationQuery({ page, pageSize })
+    const data = await apiClient<PagedResult<ListaEsperaApiDto>>(
+      `/lista-espera${query}`,
+    )
+    return {
+      ...mapPagedResult(data),
+      items: data.items.map((item) => mapItem(item, empresaId)),
+    }
   },
 
   async create(
@@ -58,18 +71,11 @@ export const listaEsperaService = {
     await apiClient<void>(`/lista-espera/${id}`, { method: 'DELETE' })
   },
 
-  async moveUp(empresaId: string, id: string): Promise<ListaEsperaItem[]> {
-    const data = await apiClient<ListaEsperaApiDto[]>(`/lista-espera/${id}/subir`, {
-      method: 'PATCH',
-    })
-    return data.map((item) => mapItem(item, empresaId))
+  async moveUp(id: string): Promise<void> {
+    await apiClient<void>(`/lista-espera/${id}/subir`, { method: 'PATCH' })
   },
 
-  async moveDown(empresaId: string, id: string): Promise<ListaEsperaItem[]> {
-    const data = await apiClient<ListaEsperaApiDto[]>(
-      `/lista-espera/${id}/descer`,
-      { method: 'PATCH' },
-    )
-    return data.map((item) => mapItem(item, empresaId))
+  async moveDown(id: string): Promise<void> {
+    await apiClient<void>(`/lista-espera/${id}/descer`, { method: 'PATCH' })
   },
 }

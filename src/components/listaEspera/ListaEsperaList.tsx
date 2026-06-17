@@ -14,6 +14,7 @@ import { formatDateBR } from '@/utils/timeSlots'
 
 interface ListaEsperaListProps {
   itens: ListaEsperaItem[]
+  total: number
   onMoveUp: (id: string) => void
   onMoveDown: (id: string) => void
   onRemove: (id: string) => void
@@ -22,6 +23,7 @@ interface ListaEsperaListProps {
 
 export function ListaEsperaList({
   itens,
+  total,
   onMoveUp,
   onMoveDown,
   onRemove,
@@ -37,7 +39,7 @@ export function ListaEsperaList({
 
   return (
     <div className="space-y-3">
-      {itens.map((item, index) => (
+      {itens.map((item) => (
         <article
           key={item.id}
           className="flex flex-col gap-4 rounded-xl border border-neutral-200 bg-white p-4 sm:flex-row sm:items-center"
@@ -74,7 +76,7 @@ export function ListaEsperaList({
               variant="ghost"
               className="px-2 sm:flex-1 sm:flex-none"
               onClick={() => onMoveUp(item.id)}
-              disabled={index === 0}
+              disabled={item.posicao <= 1}
               aria-label="Subir posição"
             >
               <ArrowUp className="h-4 w-4" />
@@ -84,7 +86,7 @@ export function ListaEsperaList({
               variant="ghost"
               className="px-2 sm:flex-1 sm:flex-none"
               onClick={() => onMoveDown(item.id)}
-              disabled={index === itens.length - 1}
+              disabled={item.posicao >= total}
               aria-label="Descer posição"
             >
               <ArrowDown className="h-4 w-4" />

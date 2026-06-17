@@ -25,11 +25,13 @@ export interface DadoGrafico {
   valor: number
 }
 
+import type { PagedResult } from '@/types/pagination'
+
 export interface FinanceiroData {
   resumo: ResumoFinanceiro
   faturamentoDiario: DadoGrafico[]
   faturamentoMensal: DadoGrafico[]
-  movimentacoes: Movimentacao[]
+  movimentacoes: PagedResult<Movimentacao>
 }
 
 export interface MovimentacaoFormData {

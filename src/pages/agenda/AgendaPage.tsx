@@ -40,8 +40,8 @@ export function AgendaPage() {
   } = useAgendamentos(empresaId)
 
   const { barbeiros } = useBarbeiros(empresaId)
-  const { clientes } = useClientes(empresaId)
-  const { servicos } = useServicos(empresaId)
+  const { clientes } = useClientes(empresaId, { all: true })
+  const { servicos } = useServicos(empresaId, { all: true })
   const { config: empresaConfig } = useEmpresaConfig()
 
   const intervaloSlots = empresaConfig?.intervaloSlots ?? 15

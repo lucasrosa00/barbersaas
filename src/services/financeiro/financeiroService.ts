@@ -1,33 +1,35 @@
 import { apiClient } from '@/services/api/client'
+import { mapPagedResult } from '@/services/api/paged'
+import type { PagedResult } from '@/types/pagination'
 import type {
   FinanceiroData,
   Movimentacao,
   MovimentacaoFormData,
   TipoMovimentacao,
 } from '@/types/financeiro'
+import { buildPaginationQuery } from '@/utils/pagination'
+
+interface MovimentacaoApiDto {
+  id: string
+  descricao: string
+  data: string
+  valor: number
+  tipo: TipoMovimentacao
+  clienteNome?: string | null
+  servicoNome?: string | null
+  barbeiroId?: string | null
+  barbeiroNome?: string | null
+  agendamentoId?: string | null
+}
 
 interface FinanceiroApiResponse {
   resumo: FinanceiroData['resumo']
   faturamentoDiario: FinanceiroData['faturamentoDiario']
   faturamentoMensal: FinanceiroData['faturamentoMensal']
-  movimentacoes: Array<{
-    id: string
-    descricao: string
-    data: string
-    valor: number
-    tipo: TipoMovimentacao
-    clienteNome?: string | null
-    servicoNome?: string | null
-    barbeiroId?: string | null
-    barbeiroNome?: string | null
-    agendamentoId?: string | null
-  }>
+  movimentacoes: PagedResult<MovimentacaoApiDto>
 }
 
-function mapMovimentacao(
-  dto: FinanceiroApiResponse['movimentacoes'][number],
-  empresaId: string,
-): Movimentacao {
+function mapMovimentacao(dto: MovimentacaoApiDto, empresaId: string): Movimentacao {
   return {
     id: dto.id,
     empresaId,
@@ -44,8 +46,17 @@ function mapMovimentacao(
 }
 
 export const financeiroService = {
-  async getData(empresaId: string): Promise<FinanceiroData> {
-    const data = await apiClient<FinanceiroApiResponse>('/financeiro')
+  async getData(
+    empresaId: string,
+    page: number,
+    pageSize: number,
+    barbeiroId?: string,
+  ): Promise<FinanceiroData> {
+    const query = buildPaginationQuery(
+      { page, pageSize },
+      { barbeiroId: barbeiroId || undefined },
+    )
+    const data = await apiClient<FinanceiroApiResponse>(`/financeiro${query}`)
 
     return {
       resumo: {
@@ -61,9 +72,12 @@ export const financeiroService = {
         label: item.label,
         valor: Number(item.valor),
       })),
-      movimentacoes: data.movimentacoes.map((item) =>
-        mapMovimentacao(item, empresaId),
-      ),
+      movimentacoes: {
+        ...mapPagedResult(data.movimentacoes),
+        items: data.movimentacoes.items.map((item) =>
+          mapMovimentacao(item, empresaId),
+        ),
+      },
     }
   },
 
@@ -71,7 +85,7 @@ export const financeiroService = {
     empresaId: string,
     formData: MovimentacaoFormData,
   ): Promise<Movimentacao> {
-    const dto = await apiClient<FinanceiroApiResponse['movimentacoes'][number]>(
+    const dto = await apiClient<MovimentacaoApiDto>(
       '/financeiro/movimentacoes',
       {
         method: 'POST',

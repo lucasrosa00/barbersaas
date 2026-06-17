@@ -1,5 +1,8 @@
 import { apiClient } from '@/services/api/client'
+import { mapPagedResult } from '@/services/api/paged'
+import type { PagedResult } from '@/types/pagination'
 import type { Cliente, ClienteFormData } from '@/types/cliente'
+import { buildPaginationQuery } from '@/utils/pagination'
 
 interface ClienteApiDto {
   id: string
@@ -19,10 +22,24 @@ function mapCliente(dto: ClienteApiDto, empresaId: string): Cliente {
 }
 
 export const clienteService = {
-  async list(empresaId: string, search?: string): Promise<Cliente[]> {
-    const query = search?.trim() ? `?search=${encodeURIComponent(search.trim())}` : ''
+  async listAll(empresaId: string, search?: string): Promise<Cliente[]> {
+    const query = buildPaginationQuery({ all: true }, { search })
     const data = await apiClient<ClienteApiDto[]>(`/clientes${query}`)
     return data.map((item) => mapCliente(item, empresaId))
+  },
+
+  async listPaged(
+    empresaId: string,
+    page: number,
+    pageSize: number,
+    search?: string,
+  ): Promise<PagedResult<Cliente>> {
+    const query = buildPaginationQuery({ page, pageSize }, { search })
+    const data = await apiClient<PagedResult<ClienteApiDto>>(`/clientes${query}`)
+    return {
+      ...mapPagedResult(data),
+      items: data.items.map((item) => mapCliente(item, empresaId)),
+    }
   },
 
   async create(empresaId: string, data: ClienteFormData): Promise<Cliente> {

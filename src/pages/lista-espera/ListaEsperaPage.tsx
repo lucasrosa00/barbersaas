@@ -4,6 +4,7 @@ import { AgendamentoFormModal } from '@/components/agenda/AgendamentoFormModal'
 import { ListaEsperaFormModal } from '@/components/listaEspera/ListaEsperaFormModal'
 import { ListaEsperaList } from '@/components/listaEspera/ListaEsperaList'
 import { Button } from '@/components/ui/Button'
+import { Pagination } from '@/components/ui/Pagination'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { useAuth } from '@/hooks/useAuth'
 import { useBarbeiros } from '@/hooks/useBarbeiros'
@@ -22,6 +23,10 @@ export function ListaEsperaPage() {
 
   const {
     itens,
+    total,
+    page,
+    pageSize,
+    setPage,
     isLoading,
     addItem,
     removeItem,
@@ -29,9 +34,9 @@ export function ListaEsperaPage() {
     moveDown,
   } = useListaEspera(empresaId)
 
-  const { clientes } = useClientes(empresaId)
+  const { clientes } = useClientes(empresaId, { all: true })
   const { barbeiros } = useBarbeiros(empresaId)
-  const { servicos } = useServicos(empresaId)
+  const { servicos } = useServicos(empresaId, { all: true })
   const { config: empresaConfig } = useEmpresaConfig()
 
   const intervaloSlots = empresaConfig?.intervaloSlots ?? 15
@@ -114,8 +119,8 @@ export function ListaEsperaPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-neutral-500">
-          {itens.length}{' '}
-          {itens.length === 1 ? 'cliente na fila' : 'clientes na fila'}
+          {total}{' '}
+          {total === 1 ? 'cliente na fila' : 'clientes na fila'}
         </p>
 
         <Button onClick={() => setFormOpen(true)} className="w-full sm:w-auto">
@@ -129,13 +134,24 @@ export function ListaEsperaPage() {
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-900 border-t-transparent" />
         </div>
       ) : (
-        <ListaEsperaList
-          itens={itens}
-          onMoveUp={moveUp}
-          onMoveDown={moveDown}
-          onRemove={setRemovingId}
-          onConvert={handleConvert}
-        />
+        <div className="overflow-hidden rounded-xl border border-neutral-200">
+          <div className="p-4">
+            <ListaEsperaList
+              itens={itens}
+              total={total}
+              onMoveUp={moveUp}
+              onMoveDown={moveDown}
+              onRemove={setRemovingId}
+              onConvert={handleConvert}
+            />
+          </div>
+          <Pagination
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            onPageChange={setPage}
+          />
+        </div>
       )}
 
       <ListaEsperaFormModal

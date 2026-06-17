@@ -4,6 +4,7 @@ import { ClienteFormModal } from '@/components/clientes/ClienteFormModal'
 import { ClientesTable } from '@/components/clientes/ClientesTable'
 import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { Pagination } from '@/components/ui/Pagination'
 import { SearchInput } from '@/components/ui/SearchInput'
 import { useAuth } from '@/hooks/useAuth'
 import { useClientes } from '@/hooks/useClientes'
@@ -14,8 +15,12 @@ export function ClientesPage() {
   const {
     clientes,
     total,
+    page,
+    pageSize,
+    setPage,
     search,
     setSearch,
+    isLoading,
     createCliente,
     updateCliente,
     deleteCliente,
@@ -79,11 +84,25 @@ export function ClientesPage() {
         </div>
       </div>
 
-      <ClientesTable
-        clientes={clientes}
-        onEdit={handleOpenEdit}
-        onDelete={setDeletingCliente}
-      />
+      {isLoading ? (
+        <div className="flex justify-center py-16">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-900 border-t-transparent" />
+        </div>
+      ) : (
+        <div className="overflow-hidden rounded-xl border border-neutral-200">
+          <ClientesTable
+            clientes={clientes}
+            onEdit={handleOpenEdit}
+            onDelete={setDeletingCliente}
+          />
+          <Pagination
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            onPageChange={setPage}
+          />
+        </div>
+      )}
 
       <ClienteFormModal
         open={formOpen}

@@ -4,6 +4,7 @@ import { ServicoFormModal } from '@/components/servicos/ServicoFormModal'
 import { ServicosTable } from '@/components/servicos/ServicosTable'
 import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { Pagination } from '@/components/ui/Pagination'
 import { SearchInput } from '@/components/ui/SearchInput'
 import { useAuth } from '@/hooks/useAuth'
 import { useBarbeiros } from '@/hooks/useBarbeiros'
@@ -15,6 +16,9 @@ export function ServicosPage() {
   const {
     servicos,
     total,
+    page,
+    pageSize,
+    setPage,
     search,
     setSearch,
     isLoading,
@@ -93,11 +97,19 @@ export function ServicosPage() {
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-900 border-t-transparent" />
         </div>
       ) : (
-        <ServicosTable
-          servicos={servicos}
-          onEdit={handleOpenEdit}
-          onDelete={setDeletingServico}
-        />
+        <div className="overflow-hidden rounded-xl border border-neutral-200">
+          <ServicosTable
+            servicos={servicos}
+            onEdit={handleOpenEdit}
+            onDelete={setDeletingServico}
+          />
+          <Pagination
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            onPageChange={setPage}
+          />
+        </div>
       )}
 
       <ServicoFormModal

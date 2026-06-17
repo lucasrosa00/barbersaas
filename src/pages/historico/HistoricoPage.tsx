@@ -1,5 +1,6 @@
 import { HistoricoFilters } from '@/components/historico/HistoricoFilters'
 import { HistoricoTable } from '@/components/historico/HistoricoTable'
+import { Pagination } from '@/components/ui/Pagination'
 import { useAuth } from '@/hooks/useAuth'
 import { useBarbeiros } from '@/hooks/useBarbeiros'
 import { useClientes } from '@/hooks/useClientes'
@@ -13,14 +14,17 @@ export function HistoricoPage() {
   const {
     registros,
     total,
-    totalFiltrado,
     valorTotal,
     filtros,
+    page,
+    pageSize,
+    setPage,
+    isLoading,
     updateFiltro,
     limparFiltros,
   } = useHistorico(empresaId)
 
-  const { clientes } = useClientes(empresaId)
+  const { clientes } = useClientes(empresaId, { all: true })
   const { barbeiros } = useBarbeiros(empresaId)
 
   if (!user) return null
@@ -30,7 +34,7 @@ export function HistoricoPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm text-neutral-500">
-            Exibindo {totalFiltrado} de {total} registros
+            {total} {total === 1 ? 'registro encontrado' : 'registros encontrados'}
           </p>
         </div>
 
@@ -50,7 +54,21 @@ export function HistoricoPage() {
         onLimpar={limparFiltros}
       />
 
-      <HistoricoTable registros={registros} />
+      {isLoading ? (
+        <div className="flex justify-center py-16">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-900 border-t-transparent" />
+        </div>
+      ) : (
+        <div className="overflow-hidden rounded-xl border border-neutral-200">
+          <HistoricoTable registros={registros} />
+          <Pagination
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            onPageChange={setPage}
+          />
+        </div>
+      )}
     </div>
   )
 }

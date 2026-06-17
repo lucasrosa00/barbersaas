@@ -1,6 +1,9 @@
 import { apiClient } from '@/services/api/client'
+import { mapPagedResult } from '@/services/api/paged'
+import type { PagedResult } from '@/types/pagination'
 import type { HistoricoAtendimento, HistoricoFiltros } from '@/types/historico'
 import type { AgendamentoStatus } from '@/types/agendamento'
+import { buildPaginationQuery } from '@/utils/pagination'
 
 interface HistoricoApiDto {
   id: string
@@ -15,16 +18,13 @@ interface HistoricoApiDto {
   status: AgendamentoStatus
 }
 
-function buildQuery(filtros: HistoricoFiltros): string {
-  const params = new URLSearchParams()
-
-  if (filtros.clienteId) params.set('clienteId', filtros.clienteId)
-  if (filtros.barbeiroId) params.set('barbeiroId', filtros.barbeiroId)
-  if (filtros.dataInicio) params.set('dataInicio', filtros.dataInicio)
-  if (filtros.dataFim) params.set('dataFim', filtros.dataFim)
-
-  const query = params.toString()
-  return query ? `?${query}` : ''
+function buildFilterParams(filtros: HistoricoFiltros) {
+  return {
+    clienteId: filtros.clienteId || undefined,
+    barbeiroId: filtros.barbeiroId || undefined,
+    dataInicio: filtros.dataInicio || undefined,
+    dataFim: filtros.dataFim || undefined,
+  }
 }
 
 function mapHistorico(dto: HistoricoApiDto, empresaId: string): HistoricoAtendimento {
@@ -44,22 +44,37 @@ function mapHistorico(dto: HistoricoApiDto, empresaId: string): HistoricoAtendim
 }
 
 export const historicoService = {
-  async list(
+  async listPaged(
     empresaId: string,
+    page: number,
+    pageSize: number,
     filtros: HistoricoFiltros = {
       clienteId: '',
       barbeiroId: '',
       dataInicio: '',
       dataFim: '',
     },
-  ): Promise<HistoricoAtendimento[]> {
-    const data = await apiClient<HistoricoApiDto[]>(`/historico${buildQuery(filtros)}`)
-    return data.map((item) => mapHistorico(item, empresaId))
+  ): Promise<PagedResult<HistoricoAtendimento>> {
+    const query = buildPaginationQuery(
+      { page, pageSize },
+      buildFilterParams(filtros),
+    )
+    const data = await apiClient<PagedResult<HistoricoApiDto>>(`/historico${query}`)
+    return {
+      ...mapPagedResult(data),
+      items: data.items.map((item) => mapHistorico(item, empresaId)),
+    }
   },
 
   async getTotal(filtros: HistoricoFiltros): Promise<number> {
+    const params = new URLSearchParams()
+    const filters = buildFilterParams(filtros)
+    for (const [key, value] of Object.entries(filters)) {
+      if (value) params.set(key, value)
+    }
+    const query = params.toString()
     const data = await apiClient<{ total: number }>(
-      `/historico/total${buildQuery(filtros)}`,
+      `/historico/total${query ? `?${query}` : ''}`,
     )
     return Number(data.total)
   },

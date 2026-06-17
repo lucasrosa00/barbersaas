@@ -1,21 +1,26 @@
 import { useCallback, useEffect, useState } from 'react'
 import { listaEsperaService } from '@/services/listaEspera/listaEsperaService'
 import type { ListaEsperaFormData, ListaEsperaItem } from '@/types/listaEspera'
+import { DEFAULT_PAGE_SIZE } from '@/types/pagination'
 
 export function useListaEspera(empresaId: string) {
   const [itens, setItens] = useState<ListaEsperaItem[]>([])
+  const [total, setTotal] = useState(0)
+  const [page, setPage] = useState(1)
+  const [pageSize] = useState(DEFAULT_PAGE_SIZE)
   const [isLoading, setIsLoading] = useState(true)
 
   const load = useCallback(async () => {
     if (!empresaId) return
     setIsLoading(true)
     try {
-      const data = await listaEsperaService.list(empresaId)
-      setItens(data)
+      const result = await listaEsperaService.listPaged(empresaId, page, pageSize)
+      setItens(result.items)
+      setTotal(result.total)
     } finally {
       setIsLoading(false)
     }
-  }, [empresaId])
+  }, [empresaId, page, pageSize])
 
   useEffect(() => {
     load()
@@ -24,38 +29,47 @@ export function useListaEspera(empresaId: string) {
   const addItem = useCallback(
     async (data: ListaEsperaFormData) => {
       const novo = await listaEsperaService.create(empresaId, data)
-      setItens((prev) => [...prev, novo].sort((a, b) => a.posicao - b.posicao))
+      setPage(1)
+      await load()
       return novo
     },
-    [empresaId],
+    [empresaId, load],
   )
 
   const removeItem = useCallback(
     async (id: string) => {
       await listaEsperaService.remove(id)
+      if (itens.length === 1 && page > 1) {
+        setPage((prev) => prev - 1)
+      } else {
+        await load()
+      }
+    },
+    [itens.length, page, load],
+  )
+
+  const moveUp = useCallback(
+    async (id: string) => {
+      await listaEsperaService.moveUp(id)
       await load()
     },
     [load],
   )
 
-  const moveUp = useCallback(
-    async (id: string) => {
-      const updated = await listaEsperaService.moveUp(empresaId, id)
-      setItens(updated)
-    },
-    [empresaId],
-  )
-
   const moveDown = useCallback(
     async (id: string) => {
-      const updated = await listaEsperaService.moveDown(empresaId, id)
-      setItens(updated)
+      await listaEsperaService.moveDown(id)
+      await load()
     },
-    [empresaId],
+    [load],
   )
 
   return {
     itens,
+    total,
+    page,
+    pageSize,
+    setPage,
     isLoading,
     addItem,
     removeItem,
