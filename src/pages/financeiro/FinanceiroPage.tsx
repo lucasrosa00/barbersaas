@@ -5,25 +5,41 @@ import { FaturamentoChart } from '@/components/financeiro/FaturamentoChart'
 import { MovimentacoesTable } from '@/components/financeiro/MovimentacoesTable'
 import { MovimentacaoFormModal } from '@/components/financeiro/MovimentacaoFormModal'
 import { Button } from '@/components/ui/Button'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Select } from '@/components/ui/Select'
 import { labels } from '@/constants/terminology'
 import { useAuth } from '@/hooks/useAuth'
 import { useBarbeiros } from '@/hooks/useBarbeiros'
 import { useFinanceiro } from '@/hooks/useFinanceiro'
 import { filterFinanceiroByBarbeiro } from '@/utils/financeiro'
+import type { Movimentacao } from '@/types/financeiro'
 
 export function FinanceiroPage() {
   const { user } = useAuth()
   const empresaId = user?.empresaId ?? ''
-  const { data, isLoading, createMovimentacao } = useFinanceiro(empresaId)
+  const { data, isLoading, createMovimentacao, deleteMovimentacao } = useFinanceiro(empresaId)
   const { barbeiros } = useBarbeiros(empresaId)
   const [formOpen, setFormOpen] = useState(false)
   const [barbeiroId, setBarbeiroId] = useState('')
+  const [deletingMovimentacao, setDeletingMovimentacao] = useState<Movimentacao>()
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const filteredData = useMemo(
     () => (data ? filterFinanceiroByBarbeiro(data, barbeiroId) : null),
     [data, barbeiroId],
   )
+
+  async function handleConfirmDelete() {
+    if (!deletingMovimentacao) return
+
+    setIsDeleting(true)
+    try {
+      await deleteMovimentacao(deletingMovimentacao.id)
+      setDeletingMovimentacao(undefined)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   if (!user) return null
 
@@ -76,13 +92,26 @@ export function FinanceiroPage() {
         />
       </div>
 
-      <MovimentacoesTable movimentacoes={filteredData.movimentacoes} />
+      <MovimentacoesTable
+        movimentacoes={filteredData.movimentacoes}
+        onDelete={setDeletingMovimentacao}
+      />
 
       <MovimentacaoFormModal
         open={formOpen}
         onClose={() => setFormOpen(false)}
         onSubmit={createMovimentacao}
         barbeiros={barbeiros}
+      />
+
+      <ConfirmDialog
+        open={!!deletingMovimentacao}
+        onClose={() => setDeletingMovimentacao(undefined)}
+        onConfirm={handleConfirmDelete}
+        title="Excluir movimentação"
+        description={`Tem certeza que deseja excluir "${deletingMovimentacao?.descricao}"? Esta ação não pode ser desfeita.`}
+        confirmLabel="Excluir"
+        isLoading={isDeleting}
       />
     </div>
   )

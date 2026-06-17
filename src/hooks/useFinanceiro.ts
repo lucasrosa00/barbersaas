@@ -26,5 +26,10 @@ export function useFinanceiro(empresaId: string) {
     await load()
   }
 
-  return { data, isLoading, reload: load, createMovimentacao }
+  async function deleteMovimentacao(id: string) {
+    await financeiroService.deleteMovimentacao(id)
+    await load()
+  }
+
+  return { data, isLoading, reload: load, createMovimentacao, deleteMovimentacao }
 }

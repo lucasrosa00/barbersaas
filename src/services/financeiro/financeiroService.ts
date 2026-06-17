@@ -20,6 +20,7 @@ interface FinanceiroApiResponse {
     servicoNome?: string | null
     barbeiroId?: string | null
     barbeiroNome?: string | null
+    agendamentoId?: string | null
   }>
 }
 
@@ -38,6 +39,7 @@ function mapMovimentacao(
     servicoNome: dto.servicoNome ?? undefined,
     barbeiroId: dto.barbeiroId ?? undefined,
     barbeiroNome: dto.barbeiroNome ?? undefined,
+    agendamentoId: dto.agendamentoId ?? undefined,
   }
 }
 
@@ -84,5 +86,11 @@ export const financeiroService = {
     )
 
     return mapMovimentacao(dto, empresaId)
+  },
+
+  async deleteMovimentacao(id: string): Promise<void> {
+    await apiClient(`/financeiro/movimentacoes/${id}`, {
+      method: 'DELETE',
+    })
   },
 }

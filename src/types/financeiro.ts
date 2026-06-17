@@ -8,6 +8,7 @@ export interface Movimentacao {
   servicoNome?: string
   barbeiroId?: string
   barbeiroNome?: string
+  agendamentoId?: string
   data: string
   valor: number
   tipo: TipoMovimentacao

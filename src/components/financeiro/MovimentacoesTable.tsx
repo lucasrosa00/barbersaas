@@ -1,12 +1,35 @@
+import { Trash2 } from 'lucide-react'
 import type { Movimentacao } from '@/types/financeiro'
 import { formatCurrency } from '@/utils/formatCurrency'
 import { formatDateBR } from '@/utils/timeSlots'
 
 interface MovimentacoesTableProps {
   movimentacoes: Movimentacao[]
+  onDelete?: (movimentacao: Movimentacao) => void
 }
 
-export function MovimentacoesTable({ movimentacoes }: MovimentacoesTableProps) {
+function DeleteButton({
+  movimentacao,
+  onDelete,
+}: {
+  movimentacao: Movimentacao
+  onDelete?: (movimentacao: Movimentacao) => void
+}) {
+  if (!onDelete || movimentacao.agendamentoId) return null
+
+  return (
+    <button
+      type="button"
+      onClick={() => onDelete(movimentacao)}
+      className="rounded-lg p-2 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
+      aria-label={`Excluir movimentação ${movimentacao.descricao}`}
+    >
+      <Trash2 className="h-4 w-4" />
+    </button>
+  )
+}
+
+export function MovimentacoesTable({ movimentacoes, onDelete }: MovimentacoesTableProps) {
   if (movimentacoes.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-neutral-200 bg-neutral-50 px-6 py-16 text-center">
@@ -36,16 +59,22 @@ export function MovimentacoesTable({ movimentacoes }: MovimentacoesTableProps) {
                 {mov.barbeiroNome && (
                   <p className="text-xs text-neutral-500">{mov.barbeiroNome}</p>
                 )}
+                {mov.agendamentoId && (
+                  <p className="text-xs text-neutral-400">Gerada por agendamento</p>
+                )}
               </div>
-              <span
-                className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                  mov.tipo === 'entrada'
-                    ? 'bg-neutral-100 text-neutral-900'
-                    : 'bg-neutral-100 text-neutral-600'
-                }`}
-              >
-                {mov.tipo === 'entrada' ? 'Entrada' : 'Saída'}
-              </span>
+              <div className="flex shrink-0 items-center gap-1">
+                <span
+                  className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                    mov.tipo === 'entrada'
+                      ? 'bg-neutral-100 text-neutral-900'
+                      : 'bg-neutral-100 text-neutral-600'
+                  }`}
+                >
+                  {mov.tipo === 'entrada' ? 'Entrada' : 'Saída'}
+                </span>
+                <DeleteButton movimentacao={mov} onDelete={onDelete} />
+              </div>
             </div>
             <div className="mt-3 flex items-center justify-between text-sm">
               <span className="text-neutral-500">{formatDateBR(mov.data)}</span>
@@ -72,6 +101,11 @@ export function MovimentacoesTable({ movimentacoes }: MovimentacoesTableProps) {
               <th className="px-4 py-3 text-right font-medium text-neutral-500">
                 Valor
               </th>
+              {onDelete && (
+                <th className="px-4 py-3 text-right font-medium text-neutral-500">
+                  Ações
+                </th>
+              )}
             </tr>
           </thead>
           <tbody className="divide-y divide-neutral-200 bg-neutral-50">
@@ -87,6 +121,9 @@ export function MovimentacoesTable({ movimentacoes }: MovimentacoesTableProps) {
                   <p className="font-medium text-neutral-900">{mov.descricao}</p>
                   {mov.barbeiroNome && (
                     <p className="text-xs text-neutral-500">{mov.barbeiroNome}</p>
+                  )}
+                  {mov.agendamentoId && (
+                    <p className="text-xs text-neutral-400">Gerada por agendamento</p>
                   )}
                 </td>
                 <td className="px-4 py-3">
@@ -108,6 +145,11 @@ export function MovimentacoesTable({ movimentacoes }: MovimentacoesTableProps) {
                   {mov.tipo === 'entrada' ? '+' : '-'}
                   {formatCurrency(mov.valor)}
                 </td>
+                {onDelete && (
+                  <td className="px-4 py-3 text-right">
+                    <DeleteButton movimentacao={mov} onDelete={onDelete} />
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
