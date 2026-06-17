@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { MessageCircle } from 'lucide-react'
@@ -22,6 +22,7 @@ import {
   hasConflict,
 } from '@/utils/agenda'
 import { buildAgendamentoConfirmacaoWhatsAppUrl } from '@/utils/whatsapp'
+import { formatCurrency } from '@/utils/formatCurrency'
 
 const statusValues = AGENDAMENTO_STATUS.map((s) => s.value) as [
   AgendamentoFormData['status'],
@@ -72,6 +73,12 @@ export function AgendamentoForm({
             .number()
             .int('Duração deve ser um número inteiro')
             .min(5, 'Duração mínima de 5 minutos'),
+          valorComDesconto: z
+            .union([
+              z.literal(''),
+              z.coerce.number().min(0.01, 'Valor deve ser maior que zero'),
+            ])
+            .transform((v): number | undefined => (v === '' ? undefined : v)),
           status: z.enum(statusValues),
         })
         .superRefine((data, ctx) => {
@@ -108,7 +115,7 @@ export function AgendamentoForm({
     control,
     formState: { errors, isSubmitting },
   } = useForm<AgendamentoFormData>({
-    resolver: zodResolver(agendamentoSchema),
+    resolver: zodResolver(agendamentoSchema) as Resolver<AgendamentoFormData>,
     defaultValues: {
       clienteId: defaultValues?.clienteId ?? '',
       barbeiroId: defaultValues?.barbeiroId ?? '',
@@ -120,6 +127,7 @@ export function AgendamentoForm({
       horario: defaultValues?.horario ?? '',
       duracaoMinutos:
         defaultValues?.duracaoMinutos ?? servicoInicial?.duracaoMinutos ?? 30,
+      valorComDesconto: defaultValues?.valorComDesconto ?? undefined,
       status: defaultValues?.status ?? 'agendado',
     },
   })
@@ -131,6 +139,7 @@ export function AgendamentoForm({
   const dataSelecionada = watch('data')
   const status = watch('status')
   const duracaoMinutos = watch('duracaoMinutos')
+  const valorComDesconto = watch('valorComDesconto')
 
   const clienteSelecionado = clientes.find((c) => c.id === clienteId)
   const barbeiroSelecionado = barbeiros.find((b) => b.id === barbeiroId)
@@ -146,6 +155,7 @@ export function AgendamentoForm({
     if (!servicoSelecionado || servicoId === previousServicoId.current) return
 
     setValue('duracaoMinutos', servicoSelecionado.duracaoMinutos)
+    setValue('valorComDesconto', undefined)
     previousServicoId.current = servicoId
   }, [servicoId, servicoSelecionado, setValue])
 
@@ -200,6 +210,11 @@ export function AgendamentoForm({
   const duracaoPadraoServico = servicoSelecionado?.duracaoMinutos
   const duracaoPersonalizada =
     duracaoPadraoServico !== undefined && duracaoMinutos !== duracaoPadraoServico
+
+  const valorCobrado =
+    valorComDesconto !== undefined && valorComDesconto !== null && !Number.isNaN(Number(valorComDesconto))
+      ? Number(valorComDesconto)
+      : servicoSelecionado?.valor
 
   const whatsappConfirmacaoUrl = useMemo(() => {
     if (!isEditing || !clienteSelecionado?.telefone || !horario || !dataSelecionada) {
@@ -329,6 +344,24 @@ export function AgendamentoForm({
         </div>
       )}
 
+      {servicoSelecionado && (
+        <div className="space-y-1.5">
+          <Input
+            label="Valor com desconto (opcional)"
+            type="number"
+            min={0.01}
+            step={0.01}
+            placeholder={formatCurrency(servicoSelecionado.valor)}
+            error={errors.valorComDesconto?.message}
+            {...register('valorComDesconto')}
+          />
+          <p className="text-xs text-neutral-500">
+            Preço do serviço: {formatCurrency(servicoSelecionado.valor)} — deixe vazio
+            para usar o valor cadastrado
+          </p>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Input
           label="Data"
@@ -366,6 +399,21 @@ export function AgendamentoForm({
             ? ` (padrão: ${duracaoPadraoServico} min)`
             : ''}{' '}
           · Intervalo {intervaloPreview}
+          {valorCobrado !== undefined && (
+            <>
+              {' '}
+              · Valor: {formatCurrency(valorCobrado)}
+              {valorComDesconto !== undefined &&
+                valorComDesconto !== null &&
+                servicoSelecionado &&
+                Number(valorComDesconto) !== servicoSelecionado.valor && (
+                  <span className="text-neutral-500">
+                    {' '}
+                    (padrão: {formatCurrency(servicoSelecionado.valor)})
+                  </span>
+                )}
+            </>
+          )}
         </p>
       )}
 

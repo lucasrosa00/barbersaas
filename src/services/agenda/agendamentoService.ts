@@ -17,6 +17,7 @@ interface AgendamentoApiDto {
   horario: string
   status: AgendamentoStatus
   duracaoMinutos: number
+  valorComDesconto?: number | null
 }
 
 function mapAgendamento(dto: AgendamentoApiDto, empresaId: string): AgendamentoEnriquecido {
@@ -33,6 +34,7 @@ function mapAgendamento(dto: AgendamentoApiDto, empresaId: string): AgendamentoE
     barbeiroNome: dto.barbeiroNome,
     servicoNome: dto.servicoNome,
     duracaoMinutos: dto.duracaoMinutos,
+    valorComDesconto: dto.valorComDesconto ?? undefined,
   }
 }
 
@@ -45,6 +47,7 @@ function toRequestBody(data: AgendamentoFormData) {
     horario: data.horario,
     status: data.status,
     duracaoMinutos: data.duracaoMinutos,
+    valorComDesconto: data.valorComDesconto ?? null,
   }
 }
 

@@ -14,6 +14,7 @@ export interface Agendamento {
   data: string
   horario: string
   duracaoMinutos: number
+  valorComDesconto?: number
   status: AgendamentoStatus
 }
 
