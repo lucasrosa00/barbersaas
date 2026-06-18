@@ -10,6 +10,7 @@ import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { BarbeirosPage } from '@/pages/barbeiros/BarbeirosPage'
 import { ClientesPage } from '@/pages/clientes/ClientesPage'
+import { AniversariantesPage } from '@/pages/aniversariantes/AniversariantesPage'
 import { ConfiguracoesPage } from '@/pages/configuracoes/ConfiguracoesPage'
 import { DashboardPage } from '@/pages/dashboard/DashboardPage'
 import { FinanceiroPage } from '@/pages/financeiro/FinanceiroPage'
@@ -39,6 +40,7 @@ export const router = createBrowserRouter(
         children: [
           { path: '/dashboard', element: <DashboardPage /> },
           { path: '/clientes', element: <ClientesPage /> },
+          { path: '/aniversariantes', element: <AniversariantesPage /> },
           { path: ROUTES.professionals, element: <BarbeirosPage /> },
           { path: '/barbeiros', element: <Navigate to={ROUTES.professionals} replace /> },
           { path: '/servicos', element: <ServicosPage /> },

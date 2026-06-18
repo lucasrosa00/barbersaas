@@ -73,3 +73,19 @@ export function buildAgendamentoConfirmacaoWhatsAppUrl(
   const message = buildAgendamentoConfirmacaoMessage(params)
   return buildWhatsAppUrl(telefone, message)
 }
+
+export function buildAniversarioWhatsAppMessage(nome: string): string {
+  const primeiroNome = nome.trim().split(/\s+/)[0] || nome
+
+  return [
+    `Olá ${primeiroNome}, tudo bem?`,
+    '',
+    'Passando para desejar um feliz aniversário!',
+    '',
+    'Temos um desconto especial para você. Entre em contato para agendar!',
+  ].join('\n')
+}
+
+export function buildAniversarioWhatsAppUrl(telefone: string, nome: string): string | null {
+  return buildWhatsAppUrl(telefone, buildAniversarioWhatsAppMessage(nome))
+}

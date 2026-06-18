@@ -1,6 +1,7 @@
 import { Pencil, Trash2 } from 'lucide-react'
 import { MobileCardActions } from '@/components/ui/MobileCardActions'
 import type { Cliente } from '@/types/cliente'
+import { formatDateBR } from '@/utils/formatDate'
 
 interface ClientesTableProps {
   clientes: Cliente[]
@@ -66,6 +67,12 @@ export function ClientesTable({
                 <dt className="text-neutral-500">Telefone</dt>
                 <dd className="text-neutral-600">{cliente.telefone}</dd>
               </div>
+              <div className="flex justify-between gap-4">
+                <dt className="text-neutral-500">Nascimento</dt>
+                <dd className="text-neutral-600">
+                  {cliente.dataNascimento ? formatDateBR(cliente.dataNascimento) : '—'}
+                </dd>
+              </div>
               {cliente.observacoes && (
                 <div>
                   <dt className="text-neutral-500">Observações</dt>
@@ -92,6 +99,9 @@ export function ClientesTable({
                 <th className="px-4 py-3 font-medium text-neutral-500">Nome</th>
                 <th className="px-4 py-3 font-medium text-neutral-500">Telefone</th>
                 <th className="px-4 py-3 font-medium text-neutral-500">
+                  Nascimento
+                </th>
+                <th className="px-4 py-3 font-medium text-neutral-500">
                   Observações
                 </th>
                 <th className="px-4 py-3 text-right font-medium text-neutral-500">
@@ -109,6 +119,9 @@ export function ClientesTable({
                     {cliente.nome}
                   </td>
                   <td className="px-4 py-3 text-neutral-600">{cliente.telefone}</td>
+                  <td className="px-4 py-3 text-neutral-600">
+                    {cliente.dataNascimento ? formatDateBR(cliente.dataNascimento) : '—'}
+                  </td>
                   <td className="max-w-xs truncate px-4 py-3 text-neutral-500">
                     {cliente.observacoes || '—'}
                   </td>

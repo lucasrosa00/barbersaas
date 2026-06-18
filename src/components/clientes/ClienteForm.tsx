@@ -10,6 +10,7 @@ import type { Cliente, ClienteFormData } from '@/types/cliente'
 const clienteSchema = z.object({
   nome: z.string().min(1, 'Nome é obrigatório'),
   telefone: z.string().min(1, 'Telefone é obrigatório'),
+  dataNascimento: z.string().optional(),
   observacoes: z.string(),
 })
 
@@ -35,12 +36,20 @@ export function ClienteForm({
     defaultValues: {
       nome: defaultValues?.nome ?? '',
       telefone: defaultValues?.telefone ?? '',
+      dataNascimento: defaultValues?.dataNascimento ?? '',
       observacoes: defaultValues?.observacoes ?? '',
     },
   })
 
+  function handleFormSubmit(data: ClienteFormData) {
+    onSubmit({
+      ...data,
+      dataNascimento: data.dataNascimento?.trim() || undefined,
+    })
+  }
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
       <Input
         label="Nome"
         placeholder="Nome completo"
@@ -53,6 +62,13 @@ export function ClienteForm({
         placeholder="(00) 00000-0000"
         error={errors.telefone?.message}
         {...register('telefone')}
+      />
+
+      <Input
+        label="Data de nascimento (opcional)"
+        type="date"
+        error={errors.dataNascimento?.message}
+        {...register('dataNascimento')}
       />
 
       <Textarea

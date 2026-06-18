@@ -68,7 +68,7 @@ export function FinanceiroPage() {
       </div>
 
       {barbeiros.length > 0 && (
-        <div className="max-w-xs">
+        <div className="w-full sm:max-w-xs">
           <Select
             label={labels.professional.one}
             value={barbeiroId}
