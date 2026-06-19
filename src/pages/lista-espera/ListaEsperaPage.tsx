@@ -34,7 +34,7 @@ export function ListaEsperaPage() {
     moveDown,
   } = useListaEspera(empresaId)
 
-  const { clientes } = useClientes(empresaId, { all: true })
+  const { clientes, createCliente } = useClientes(empresaId, { all: true })
   const { barbeiros } = useBarbeiros(empresaId)
   const { servicos } = useServicos(empresaId, { all: true })
   const { config: empresaConfig } = useEmpresaConfig()
@@ -176,6 +176,7 @@ export function ListaEsperaPage() {
         barbeiros={barbeiros}
         servicos={servicos}
         intervaloSlots={intervaloSlots}
+        onCreateCliente={createCliente}
       />
 
       <ConfirmDialog

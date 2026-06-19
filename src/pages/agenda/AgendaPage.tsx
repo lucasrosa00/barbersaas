@@ -18,7 +18,8 @@ import type {
   AgendamentoFormData,
 } from '@/types/agendamento'
 import { labels } from '@/constants/terminology'
-import { addDays, formatDateBR } from '@/utils/timeSlots'
+import { formatDateBR, formatWeekdayLong, isToday } from '@/utils/formatDate'
+import { addDays } from '@/utils/timeSlots'
 import {
   AGENDAMENTO_STATUS,
   getAgendaStatusLegendColor,
@@ -40,7 +41,7 @@ export function AgendaPage() {
   } = useAgendamentos(empresaId)
 
   const { barbeiros } = useBarbeiros(empresaId)
-  const { clientes } = useClientes(empresaId, { all: true })
+  const { clientes, createCliente } = useClientes(empresaId, { all: true })
   const { servicos } = useServicos(empresaId, { all: true })
   const { config: empresaConfig } = useEmpresaConfig()
 
@@ -223,7 +224,7 @@ export function AgendaPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex w-full items-center justify-between gap-2 rounded-xl border border-neutral-200 bg-white p-2 sm:w-auto sm:justify-start sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0">
+        <div className="flex w-full items-center justify-between gap-2 rounded-xl border border-neutral-200 bg-white p-3 sm:w-auto sm:min-w-[16rem] sm:justify-start sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0">
           <Button
             variant="ghost"
             className="shrink-0 px-2"
@@ -234,13 +235,25 @@ export function AgendaPage() {
           </Button>
 
           <div className="min-w-0 flex-1 text-center sm:flex-none">
-            <p className="truncate text-sm font-semibold text-neutral-900">
-              {formatDateBR(selectedDate)}
-            </p>
-            <p className="text-xs text-neutral-500">
-              {agendamentosAtivos.length}{' '}
-              {agendamentosAtivos.length === 1 ? 'agendamento' : 'agendamentos'}
-            </p>
+            <div className="flex flex-col items-center gap-1">
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <p className="text-lg font-bold leading-tight text-neutral-900 sm:text-xl">
+                  {formatWeekdayLong(selectedDate)}
+                </p>
+                {isToday(selectedDate) && (
+                  <span className="rounded-full bg-neutral-900 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+                    Hoje
+                  </span>
+                )}
+              </div>
+              <p className="text-sm font-medium text-neutral-600">
+                {formatDateBR(selectedDate)}
+              </p>
+              <p className="text-xs text-neutral-500">
+                {agendamentosAtivos.length}{' '}
+                {agendamentosAtivos.length === 1 ? 'agendamento' : 'agendamentos'}
+              </p>
+            </div>
           </div>
 
           <Button
@@ -329,6 +342,7 @@ export function AgendaPage() {
         servicos={servicos}
         intervaloSlots={intervaloSlots}
         formKey={formKey}
+        onCreateCliente={createCliente}
       />
 
       <ConfirmDialog

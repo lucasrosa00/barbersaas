@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react'
 import { ChevronDown } from 'lucide-react'
 
 export interface ComboboxOption {
@@ -15,6 +15,7 @@ interface ComboboxProps {
   onChange: (value: string) => void
   error?: string
   disabled?: boolean
+  labelAction?: ReactNode
 }
 
 function normalize(text: string): string {
@@ -33,6 +34,7 @@ export function Combobox({
   onChange,
   error,
   disabled = false,
+  labelAction,
 }: ComboboxProps) {
   const inputId = useId()
   const containerRef = useRef<HTMLDivElement>(null)
@@ -86,9 +88,12 @@ export function Combobox({
 
   return (
     <div ref={containerRef} className="relative space-y-1.5">
-      <label htmlFor={inputId} className="block text-sm font-medium text-neutral-600">
-        {label}
-      </label>
+      <div className="flex items-center justify-between gap-2">
+        <label htmlFor={inputId} className="block text-sm font-medium text-neutral-600">
+          {label}
+        </label>
+        {labelAction}
+      </div>
 
       <div className="relative">
         <input

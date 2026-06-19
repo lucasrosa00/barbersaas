@@ -6,9 +6,10 @@ interface ModalProps {
   onClose: () => void
   title: string
   children: ReactNode
+  nested?: boolean
 }
 
-export function Modal({ open, onClose, title, children }: ModalProps) {
+export function Modal({ open, onClose, title, children, nested = false }: ModalProps) {
   useEffect(() => {
     if (!open) return
 
@@ -28,7 +29,7 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4">
+    <div className={`fixed inset-0 ${nested ? 'z-[60]' : 'z-50'} flex items-end justify-center sm:items-center sm:p-4`}>
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}

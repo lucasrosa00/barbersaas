@@ -5,8 +5,9 @@ import type { Cliente, ClienteFormData } from '@/types/cliente'
 interface ClienteFormModalProps {
   open: boolean
   onClose: () => void
-  onSubmit: (data: ClienteFormData) => void
+  onSubmit: (data: ClienteFormData) => void | Promise<void>
   cliente?: Cliente
+  nested?: boolean
 }
 
 export function ClienteFormModal({
@@ -14,11 +15,12 @@ export function ClienteFormModal({
   onClose,
   onSubmit,
   cliente,
+  nested = false,
 }: ClienteFormModalProps) {
   const isEditing = !!cliente
 
-  function handleSubmit(data: ClienteFormData) {
-    onSubmit(data)
+  async function handleSubmit(data: ClienteFormData) {
+    await onSubmit(data)
     onClose()
   }
 
@@ -27,6 +29,7 @@ export function ClienteFormModal({
       open={open}
       onClose={onClose}
       title={isEditing ? 'Editar Cliente' : 'Novo Cliente'}
+      nested={nested}
     >
       <ClienteForm
         key={cliente?.id ?? 'new'}

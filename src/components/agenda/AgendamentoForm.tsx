@@ -1,17 +1,18 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Controller, useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { MessageCircle } from 'lucide-react'
+import { MessageCircle, Plus } from 'lucide-react'
 import { labels } from '@/constants/terminology'
 import { AGENDAMENTO_STATUS } from '@/constants/agendamentoStatus'
+import { ClienteFormModal } from '@/components/clientes/ClienteFormModal'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
 import { Input } from '@/components/ui/Input'
 import { Combobox } from '@/components/ui/Combobox'
 import { Select } from '@/components/ui/Select'
 import type { AgendamentoEnriquecido, AgendamentoFormData } from '@/types/agendamento'
-import type { Cliente } from '@/types/cliente'
+import type { Cliente, ClienteFormData } from '@/types/cliente'
 import type { Barbeiro } from '@/types/barbeiro'
 import type { Servico } from '@/types/servico'
 import type { IntervaloSlot } from '@/types/empresaConfig'
@@ -40,6 +41,7 @@ interface AgendamentoFormProps {
   onSubmit: (data: AgendamentoFormData) => void | Promise<void>
   onCancel: () => void
   onCancelAgendamento?: () => void
+  onCreateCliente?: (data: ClienteFormData) => Promise<Cliente>
   submitLabel?: string
   isEditing?: boolean
   empresaNome?: string
@@ -56,10 +58,13 @@ export function AgendamentoForm({
   onSubmit,
   onCancel,
   onCancelAgendamento,
+  onCreateCliente,
   submitLabel = 'Salvar',
   isEditing = false,
   empresaNome,
 }: AgendamentoFormProps) {
+  const [clienteFormOpen, setClienteFormOpen] = useState(false)
+
   const agendamentoSchema = useMemo(
     () =>
       z
@@ -253,7 +258,14 @@ export function AgendamentoForm({
     [clientes],
   )
 
+  async function handleCreateCliente(data: ClienteFormData) {
+    if (!onCreateCliente) return
+    const novo = await onCreateCliente(data)
+    setValue('clienteId', novo.id)
+  }
+
   return (
+    <>
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
         <Controller
@@ -267,6 +279,19 @@ export function AgendamentoForm({
               value={field.value}
               onChange={field.onChange}
               error={errors.clienteId?.message}
+              labelAction={
+                onCreateCliente ? (
+                  <button
+                    type="button"
+                    onClick={() => setClienteFormOpen(true)}
+                    className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-600 transition-colors hover:border-neutral-300 hover:bg-neutral-50 hover:text-neutral-900"
+                    aria-label="Cadastrar novo cliente"
+                    title="Cadastrar novo cliente"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                ) : undefined
+              }
             />
           )}
         />
@@ -472,5 +497,15 @@ export function AgendamentoForm({
         </div>
       </FormActions>
     </form>
+
+    {onCreateCliente && (
+      <ClienteFormModal
+        open={clienteFormOpen}
+        onClose={() => setClienteFormOpen(false)}
+        onSubmit={handleCreateCliente}
+        nested
+      />
+    )}
+    </>
   )
 }
