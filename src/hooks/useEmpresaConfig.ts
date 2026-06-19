@@ -78,6 +78,7 @@ export function useEmpresaConfig() {
         })
         const updated = await empresaService.updatePreferencias({
           confirmacaoManual: data.confirmacaoManual,
+          enviarLinkConfirmacaoWhatsApp: data.enviarLinkConfirmacaoWhatsApp,
           permitirMesmoDia: data.permitirMesmoDia,
         })
         setConfig(updated)

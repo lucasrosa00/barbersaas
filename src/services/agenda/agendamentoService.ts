@@ -20,6 +20,7 @@ interface AgendamentoApiDto {
   duracaoMinutos: number
   valorComDesconto?: number | null
   metodoPagamento?: MetodoPagamento | null
+  tokenConfirmacao?: string | null
 }
 
 function mapAgendamento(dto: AgendamentoApiDto, empresaId: string): AgendamentoEnriquecido {
@@ -38,6 +39,7 @@ function mapAgendamento(dto: AgendamentoApiDto, empresaId: string): AgendamentoE
     duracaoMinutos: dto.duracaoMinutos,
     valorComDesconto: dto.valorComDesconto ?? undefined,
     metodoPagamento: dto.metodoPagamento ?? undefined,
+    tokenConfirmacao: dto.tokenConfirmacao ?? undefined,
   }
 }
 

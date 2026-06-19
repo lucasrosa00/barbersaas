@@ -13,6 +13,7 @@ import { BarbeirosPage } from '@/pages/barbeiros/BarbeirosPage'
 import { ClientesPage } from '@/pages/clientes/ClientesPage'
 import { AniversariantesPage } from '@/pages/aniversariantes/AniversariantesPage'
 import { ConfiguracoesPage } from '@/pages/configuracoes/ConfiguracoesPage'
+import { ConfirmacaoPage } from '@/pages/confirmacao/ConfirmacaoPage'
 import { DashboardPage } from '@/pages/dashboard/DashboardPage'
 import { FinanceiroPage } from '@/pages/financeiro/FinanceiroPage'
 import { HistoricoPage } from '@/pages/historico/HistoricoPage'
@@ -21,6 +22,10 @@ import { ServicosPage } from '@/pages/servicos/ServicosPage'
 
 export const router = createBrowserRouter(
   [
+  {
+    path: '/confirmacao/:token',
+    element: <ConfirmacaoPage />,
+  },
   {
     element: <PublicRoute />,
     children: [

@@ -4,6 +4,7 @@ import type { EmpresaConfig } from '@/types/empresaConfig'
 
 interface PreferenciasForm {
   confirmacaoManual: boolean
+  enviarLinkConfirmacaoWhatsApp: boolean
   permitirMesmoDia: boolean
 }
 
@@ -21,6 +22,7 @@ export function PreferenciasConfigForm({
   const { register, handleSubmit } = useForm<PreferenciasForm>({
     defaultValues: {
       confirmacaoManual: config.confirmacaoManual,
+      enviarLinkConfirmacaoWhatsApp: config.enviarLinkConfirmacaoWhatsApp,
       permitirMesmoDia: config.permitirMesmoDia,
     },
   })
@@ -39,6 +41,22 @@ export function PreferenciasConfigForm({
           </p>
           <p className="text-xs text-neutral-500">
             Novos agendamentos ficam como &quot;Agendado&quot; até confirmação.
+          </p>
+        </div>
+      </label>
+
+      <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-neutral-200 bg-white p-4">
+        <input
+          type="checkbox"
+          className="mt-0.5 rounded border-neutral-400 bg-white text-neutral-900 focus:ring-neutral-400"
+          {...register('enviarLinkConfirmacaoWhatsApp')}
+        />
+        <div>
+          <p className="text-sm font-medium text-neutral-900">
+            Incluir link de confirmação no WhatsApp
+          </p>
+          <p className="text-xs text-neutral-500">
+            A mensagem de confirmação enviada ao cliente incluirá um link para confirmar presença.
           </p>
         </div>
       </label>

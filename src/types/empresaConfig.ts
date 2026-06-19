@@ -10,6 +10,7 @@ export interface EmpresaConfig {
   horarioFechamento: string
   intervaloSlots: IntervaloSlot
   confirmacaoManual: boolean
+  enviarLinkConfirmacaoWhatsApp: boolean
   permitirMesmoDia: boolean
 }
 
@@ -17,6 +18,7 @@ export type EmpresaConfigFormData = Omit<EmpresaConfig, 'id'>
 
 export interface PreferenciasAgendamento {
   confirmacaoManual: boolean
+  enviarLinkConfirmacaoWhatsApp: boolean
   permitirMesmoDia: boolean
   intervaloSlots: IntervaloSlot
 }

@@ -14,3 +14,28 @@ export function resolveAppPath(path: string): string {
   if (base === '/') return normalized
   return `${base.replace(/\/$/, '')}${normalized}`
 }
+
+/** Origem pública do app (ex.: `https://site.com`). Usa `VITE_PUBLIC_APP_URL` ou `window.location.origin`. */
+export function getPublicAppOrigin(): string {
+  const configured = import.meta.env.VITE_PUBLIC_APP_URL?.trim()
+  if (configured) {
+    try {
+      return new URL(configured).origin
+    } catch {
+      return configured.replace(/\/$/, '')
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    return window.location.origin
+  }
+
+  return ''
+}
+
+/** URL absoluta para a página pública de confirmação de presença. */
+export function buildConfirmacaoPublicUrl(token: string): string {
+  const origin = getPublicAppOrigin()
+  const path = resolveAppPath(`/confirmacao/${encodeURIComponent(token)}`)
+  return `${origin}${path}`
+}

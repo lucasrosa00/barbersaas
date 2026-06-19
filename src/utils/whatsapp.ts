@@ -1,5 +1,6 @@
 import { formatDateBR } from '@/utils/formatDate'
 import { formatHorarioIntervalo } from '@/utils/agenda'
+import { buildConfirmacaoPublicUrl } from '@/config/app'
 
 export function normalizePhoneForWhatsApp(telefone: string): string | null {
   const digits = telefone.replace(/\D/g, '')
@@ -31,6 +32,8 @@ interface AgendamentoConfirmacaoParams {
   servicoNome: string
   barbeiroNome: string
   empresaNome?: string
+  tokenConfirmacao?: string
+  enviarLinkConfirmacao?: boolean
 }
 
 export function buildAgendamentoConfirmacaoMessage({
@@ -41,6 +44,8 @@ export function buildAgendamentoConfirmacaoMessage({
   servicoNome,
   barbeiroNome,
   empresaNome,
+  tokenConfirmacao,
+  enviarLinkConfirmacao = false,
 }: AgendamentoConfirmacaoParams): string {
   const primeiroNome = clienteNome.trim().split(/\s+/)[0] || clienteNome
   const intervalo = formatHorarioIntervalo(horario, duracaoMinutos)
@@ -59,6 +64,14 @@ export function buildAgendamentoConfirmacaoMessage({
 
   if (empresaNome?.trim()) {
     lines.push('', empresaNome.trim())
+  }
+
+  if (enviarLinkConfirmacao && tokenConfirmacao) {
+    lines.push(
+      '',
+      'Para confirmar sua presença, acesse o link abaixo:',
+      buildConfirmacaoPublicUrl(tokenConfirmacao),
+    )
   }
 
   lines.push('', 'Qualquer dúvida, estamos à disposição!')

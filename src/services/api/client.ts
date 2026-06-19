@@ -3,7 +3,8 @@ const API_BASE_URL = import.meta.env.VITE_API_URL ?? ''
 export const TOKEN_KEY = 'barbersaas_token'
 
 interface RequestOptions extends RequestInit {
-  token?: string
+  /** `null` omite o header Authorization; omitir usa o token salvo. */
+  token?: string | null
 }
 
 let onUnauthorized: (() => void) | null = null
@@ -32,13 +33,14 @@ export async function apiClient<T>(
   endpoint: string,
   options: RequestOptions = {},
 ): Promise<T> {
-  const { token = getStoredToken(), headers, ...rest } = options
+  const { token, headers, ...rest } = options
+  const resolvedToken = token !== undefined ? token : getStoredToken()
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...rest,
     headers: {
       'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(resolvedToken ? { Authorization: `Bearer ${resolvedToken}` } : {}),
       ...headers,
     },
   })

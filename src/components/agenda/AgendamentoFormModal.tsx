@@ -74,6 +74,7 @@ export function AgendamentoFormModal({
         isEditing={isEditing}
         submitLabel={isEditing ? 'Salvar alterações' : 'Agendar'}
         empresaNome={empresaConfig?.nome}
+        enviarLinkConfirmacaoWhatsApp={empresaConfig?.enviarLinkConfirmacaoWhatsApp}
         onCreateCliente={onCreateCliente}
       />
     </Modal>

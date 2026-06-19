@@ -15,6 +15,7 @@ interface EmpresaConfigApiDto {
   horarioFechamento: string
   intervaloSlots: IntervaloSlot
   confirmacaoManual: boolean
+  enviarLinkConfirmacaoWhatsApp: boolean
   permitirMesmoDia: boolean
 }
 
@@ -29,6 +30,7 @@ function mapConfig(dto: EmpresaConfigApiDto): EmpresaConfig {
     horarioFechamento: dto.horarioFechamento,
     intervaloSlots: Number(dto.intervaloSlots) as IntervaloSlot,
     confirmacaoManual: dto.confirmacaoManual,
+    enviarLinkConfirmacaoWhatsApp: dto.enviarLinkConfirmacaoWhatsApp,
     permitirMesmoDia: dto.permitirMesmoDia,
   }
 }
@@ -61,7 +63,10 @@ export const empresaService = {
   },
 
   async updatePreferencias(
-    data: Pick<EmpresaConfigFormData, 'confirmacaoManual' | 'permitirMesmoDia'>,
+    data: Pick<
+      EmpresaConfigFormData,
+      'confirmacaoManual' | 'enviarLinkConfirmacaoWhatsApp' | 'permitirMesmoDia'
+    >,
   ) {
     const updated = await apiClient<EmpresaConfigApiDto>(
       '/empresa/config/preferencias',

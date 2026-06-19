@@ -20,6 +20,7 @@ export interface Agendamento {
   valorComDesconto?: number
   status: AgendamentoStatus
   metodoPagamento?: MetodoPagamento
+  tokenConfirmacao?: string
 }
 
 export type AgendamentoFormData = Omit<Agendamento, 'id' | 'empresaId'>

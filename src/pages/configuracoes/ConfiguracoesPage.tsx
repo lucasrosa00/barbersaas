@@ -124,7 +124,7 @@ export function ConfiguracoesPage() {
         icon={<Settings className="h-5 w-5" />}
       >
         <PreferenciasConfigForm
-          key={`pref-${config.confirmacaoManual}`}
+          key={`pref-${config.confirmacaoManual}-${config.enviarLinkConfirmacaoWhatsApp}`}
           config={config}
           isSaving={isSaving}
           onSubmit={handlePreferenciasSubmit}

@@ -11,6 +11,7 @@ export const mockEmpresaConfig: EmpresaConfig[] = [
     horarioFechamento: '20:00',
     intervaloSlots: 15,
     confirmacaoManual: true,
+    enviarLinkConfirmacaoWhatsApp: false,
     permitirMesmoDia: true,
   },
   {
@@ -23,6 +24,7 @@ export const mockEmpresaConfig: EmpresaConfig[] = [
     horarioFechamento: '20:00',
     intervaloSlots: 15,
     confirmacaoManual: false,
+    enviarLinkConfirmacaoWhatsApp: true,
     permitirMesmoDia: true,
   },
   {
@@ -35,6 +37,7 @@ export const mockEmpresaConfig: EmpresaConfig[] = [
     horarioFechamento: '18:00',
     intervaloSlots: 30,
     confirmacaoManual: true,
+    enviarLinkConfirmacaoWhatsApp: false,
     permitirMesmoDia: false,
   },
 ]
