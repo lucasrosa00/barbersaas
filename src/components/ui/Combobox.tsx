@@ -108,7 +108,7 @@ export function Combobox({
           value={query}
           onChange={(e) => handleInputChange(e.target.value)}
           onFocus={() => !disabled && setOpen(true)}
-          className={`w-full rounded-lg border bg-white py-2.5 pl-3.5 pr-10 text-sm text-neutral-900 placeholder:text-neutral-500 transition-colors focus:outline-none focus:ring-2 focus:ring-neutral-400/50 ${
+          className={`w-full rounded-lg border bg-white py-2.5 pl-3.5 pr-10 text-[16px] text-neutral-900 placeholder:text-neutral-500 transition-colors focus:outline-none focus:ring-2 focus:ring-neutral-400/50 sm:text-sm ${
             error
               ? 'border-neutral-900 focus:border-neutral-900'
               : 'border-neutral-300 focus:border-neutral-900'

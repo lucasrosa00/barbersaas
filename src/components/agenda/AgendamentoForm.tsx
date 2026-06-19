@@ -8,6 +8,7 @@ import { AGENDAMENTO_STATUS } from '@/constants/agendamentoStatus'
 import { ClienteFormModal } from '@/components/clientes/ClienteFormModal'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
+import { DatePickerField } from '@/components/ui/DatePickerField'
 import { Input } from '@/components/ui/Input'
 import { Combobox } from '@/components/ui/Combobox'
 import { Select } from '@/components/ui/Select'
@@ -266,7 +267,7 @@ export function AgendamentoForm({
 
   return (
     <>
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="min-w-0 space-y-4">
       <div className="space-y-2">
         <Controller
           name="clienteId"
@@ -387,12 +388,18 @@ export function AgendamentoForm({
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Input
-          label="Data"
-          type="date"
-          error={errors.data?.message}
-          {...register('data')}
+      <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+        <Controller
+          name="data"
+          control={control}
+          render={({ field }) => (
+            <DatePickerField
+              label="Data"
+              value={field.value}
+              onChange={field.onChange}
+              error={errors.data?.message}
+            />
+          )}
         />
 
         {barbeiroSelecionado && servicoSelecionado && duracaoMinutos >= 5 ? (

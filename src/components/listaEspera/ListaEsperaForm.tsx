@@ -1,10 +1,10 @@
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { labels } from '@/constants/terminology'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
-import { Input } from '@/components/ui/Input'
+import { DatePickerField } from '@/components/ui/DatePickerField'
 import { Select } from '@/components/ui/Select'
 import type { ListaEsperaFormData } from '@/types/listaEspera'
 import type { Cliente } from '@/types/cliente'
@@ -37,6 +37,7 @@ export function ListaEsperaForm({
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<ListaEsperaFormData>({
     resolver: zodResolver(schema),
@@ -79,11 +80,17 @@ export function ListaEsperaForm({
         {...register('barbeiroId')}
       />
 
-      <Input
-        label="Data solicitada"
-        type="date"
-        error={errors.dataSolicitada?.message}
-        {...register('dataSolicitada')}
+      <Controller
+        name="dataSolicitada"
+        control={control}
+        render={({ field }) => (
+          <DatePickerField
+            label="Data solicitada"
+            value={field.value}
+            onChange={field.onChange}
+            error={errors.dataSolicitada?.message}
+          />
+        )}
       />
 
       <FormActions>

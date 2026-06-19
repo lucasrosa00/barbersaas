@@ -5,6 +5,7 @@ import { AgendamentoFormModal } from '@/components/agenda/AgendamentoFormModal'
 import { AgendamentoMoveModal } from '@/components/agenda/AgendamentoMoveModal'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Button } from '@/components/ui/Button'
+import { DatePickerField } from '@/components/ui/DatePickerField'
 import { Select } from '@/components/ui/Select'
 import { useAuth } from '@/hooks/useAuth'
 import { useAgendamentos } from '@/hooks/useAgendamentos'
@@ -266,12 +267,15 @@ export function AgendaPage() {
           </Button>
         </div>
 
-        <input
-          type="date"
-          value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
-          className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-400/50 sm:w-auto"
-        />
+        <div className="min-w-0 w-full sm:w-auto">
+          <DatePickerField
+            label="Data"
+            hideLabel
+            value={selectedDate}
+            onChange={setSelectedDate}
+            autoWidthDesktop
+          />
+        </div>
 
         <Button onClick={handleOpenCreate} className="w-full sm:w-auto">
           <Plus className="h-4 w-4" />

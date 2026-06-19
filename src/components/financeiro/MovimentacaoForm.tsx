@@ -1,9 +1,10 @@
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { labels } from '@/constants/terminology'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
+import { DatePickerField } from '@/components/ui/DatePickerField'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import type { MovimentacaoFormData, TipoMovimentacao } from '@/types/financeiro'
@@ -37,6 +38,7 @@ export function MovimentacaoForm({
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<MovimentacaoFormData>({
     resolver: zodResolver(movimentacaoSchema),
@@ -68,12 +70,18 @@ export function MovimentacaoForm({
         {...register('descricao')}
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Input
-          label="Data"
-          type="date"
-          error={errors.data?.message}
-          {...register('data')}
+      <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+        <Controller
+          name="data"
+          control={control}
+          render={({ field }) => (
+            <DatePickerField
+              label="Data"
+              value={field.value}
+              onChange={field.onChange}
+              error={errors.data?.message}
+            />
+          )}
         />
 
         <Input

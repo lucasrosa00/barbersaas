@@ -21,7 +21,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           ref={ref}
           id={textareaId}
           rows={3}
-          className={`w-full resize-none rounded-lg border bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-500 transition-colors focus:outline-none focus:ring-2 focus:ring-neutral-400/50 ${
+          className={`w-full resize-none rounded-lg border bg-white px-3.5 py-2.5 text-[16px] text-neutral-900 placeholder:text-neutral-500 transition-colors focus:outline-none focus:ring-2 focus:ring-neutral-400/50 sm:text-sm ${
             error
               ? 'border-neutral-900 focus:border-neutral-900'
               : 'border-neutral-300 focus:border-neutral-900'

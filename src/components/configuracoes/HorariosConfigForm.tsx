@@ -1,8 +1,8 @@
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
+import { TimePickerField } from '@/components/ui/TimePickerField'
 import { Select } from '@/components/ui/Select'
 import type { EmpresaConfig } from '@/types/empresaConfig'
 
@@ -36,6 +36,7 @@ export function HorariosConfigForm({
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<HorariosForm>({
     resolver: zodResolver(schema),
@@ -48,18 +49,30 @@ export function HorariosConfigForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Input
-          label="Abertura"
-          type="time"
-          error={errors.horarioAbertura?.message}
-          {...register('horarioAbertura')}
+      <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+        <Controller
+          name="horarioAbertura"
+          control={control}
+          render={({ field }) => (
+            <TimePickerField
+              label="Abertura"
+              value={field.value}
+              onChange={field.onChange}
+              error={errors.horarioAbertura?.message}
+            />
+          )}
         />
-        <Input
-          label="Fechamento"
-          type="time"
-          error={errors.horarioFechamento?.message}
-          {...register('horarioFechamento')}
+        <Controller
+          name="horarioFechamento"
+          control={control}
+          render={({ field }) => (
+            <TimePickerField
+              label="Fechamento"
+              value={field.value}
+              onChange={field.onChange}
+              error={errors.horarioFechamento?.message}
+            />
+          )}
         />
       </div>
 

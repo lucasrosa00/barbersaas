@@ -10,7 +10,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     const inputId = id ?? props.name
 
     return (
-      <div className="space-y-1.5">
+      <div className="min-w-0 w-full max-w-full space-y-1.5">
         <label
           htmlFor={inputId}
           className="block text-sm font-medium text-neutral-600"
@@ -20,7 +20,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         <input
           ref={ref}
           id={inputId}
-          className={`w-full rounded-lg border bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-500 transition-colors focus:outline-none focus:ring-2 focus:ring-neutral-400/50 ${
+          className={`box-border min-w-0 max-w-full w-full rounded-lg border bg-white px-3.5 py-2.5 text-[16px] text-neutral-900 placeholder:text-neutral-500 transition-colors focus:outline-none focus:ring-2 focus:ring-neutral-400/50 sm:text-sm ${
             error
               ? 'border-neutral-900 focus:border-neutral-900'
               : 'border-neutral-300 focus:border-neutral-900'

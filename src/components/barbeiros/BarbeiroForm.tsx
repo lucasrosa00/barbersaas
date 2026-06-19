@@ -6,6 +6,7 @@ import { labels } from '@/constants/terminology'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
 import { Input } from '@/components/ui/Input'
+import { TimePickerField } from '@/components/ui/TimePickerField'
 import type { Barbeiro, BarbeiroFormData } from '@/types/barbeiro'
 
 const diaSemanaValues = DIAS_SEMANA.map((d) => d.value) as [
@@ -155,18 +156,30 @@ export function BarbeiroForm({
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Input
-          label="Horário início"
-          type="time"
-          error={errors.horarioInicio?.message}
-          {...register('horarioInicio')}
+      <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+        <Controller
+          name="horarioInicio"
+          control={control}
+          render={({ field }) => (
+            <TimePickerField
+              label="Horário início"
+              value={field.value}
+              onChange={field.onChange}
+              error={errors.horarioInicio?.message}
+            />
+          )}
         />
-        <Input
-          label="Horário fim"
-          type="time"
-          error={errors.horarioFim?.message}
-          {...register('horarioFim')}
+        <Controller
+          name="horarioFim"
+          control={control}
+          render={({ field }) => (
+            <TimePickerField
+              label="Horário fim"
+              value={field.value}
+              onChange={field.onChange}
+              error={errors.horarioFim?.message}
+            />
+          )}
         />
       </div>
 

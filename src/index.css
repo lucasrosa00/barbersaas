@@ -28,12 +28,43 @@
     padding-right: env(safe-area-inset-right);
   }
 
-  /* iOS Safari dá zoom em inputs com font-size < 16px */
+  /* iOS Safari: zoom ao focar campos com font-size < 16px */
   @media (max-width: 639px) {
     input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
     select,
     textarea {
-      font-size: 1rem;
+      font-size: 16px !important;
     }
   }
+}
+
+.date-picker-field {
+  --rdp-accent-color: #171717;
+  --rdp-accent-background-color: #f5f5f5;
+  --rdp-day-height: 2.25rem;
+  --rdp-day-width: 2.25rem;
+  --rdp-day_button-height: 2.25rem;
+  --rdp-day_button-width: 2.25rem;
+  --rdp-selected-font: inherit;
+  margin: 0;
+}
+
+.date-picker-field .rdp-months {
+  justify-content: center;
+}
+
+.date-picker-field .rdp-month_caption {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #171717;
+}
+
+.date-picker-field .rdp-weekday {
+  font-size: 0.75rem;
+  color: #737373;
+}
+
+.date-picker-field .rdp-day_button {
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
 }

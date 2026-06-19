@@ -4,7 +4,7 @@ import type { Cliente } from '@/types/cliente'
 import { labels } from '@/constants/terminology'
 import type { Barbeiro } from '@/types/barbeiro'
 import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
+import { DatePickerField } from '@/components/ui/DatePickerField'
 import { Select } from '@/components/ui/Select'
 
 interface HistoricoFiltersProps {
@@ -38,7 +38,7 @@ export function HistoricoFilters({
         Filtros
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Select
           label="Cliente"
           value={filtros.clienteId}
@@ -59,18 +59,20 @@ export function HistoricoFilters({
           ]}
         />
 
-        <Input
+        <DatePickerField
           label="Data início"
-          type="date"
           value={filtros.dataInicio}
-          onChange={(e) => onUpdate('dataInicio', e.target.value)}
+          onChange={(value) => onUpdate('dataInicio', value)}
+          clearable
+          placeholder="Todas"
         />
 
-        <Input
+        <DatePickerField
           label="Data fim"
-          type="date"
           value={filtros.dataFim}
-          onChange={(e) => onUpdate('dataFim', e.target.value)}
+          onChange={(value) => onUpdate('dataFim', value)}
+          clearable
+          placeholder="Todas"
         />
       </div>
 

@@ -40,7 +40,7 @@ export function Modal({ open, onClose, title, children, nested = false }: ModalP
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
-        className="relative z-10 flex max-h-[92dvh] w-full flex-col rounded-t-xl border border-neutral-200 bg-white shadow-xl sm:max-h-[90vh] sm:max-w-lg sm:rounded-xl"
+        className="relative z-10 flex max-h-[92dvh] w-full min-w-0 max-w-full flex-col rounded-t-xl border border-neutral-200 bg-white shadow-xl sm:max-h-[90vh] sm:max-w-lg sm:rounded-xl"
       >
         <div className="flex shrink-0 items-center justify-between border-b border-neutral-200 px-4 py-4 sm:px-6">
           <h2 id="modal-title" className="pr-4 text-base font-semibold text-neutral-900 sm:text-lg">
@@ -56,7 +56,7 @@ export function Modal({ open, onClose, title, children, nested = false }: ModalP
           </button>
         </div>
 
-        <div className="overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">{children}</div>
+        <div className="min-w-0 max-w-full overflow-y-auto overflow-x-hidden px-4 py-4 sm:px-6 sm:py-5">{children}</div>
       </div>
     </div>
   )

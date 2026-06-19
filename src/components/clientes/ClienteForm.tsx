@@ -1,8 +1,9 @@
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
+import { DatePickerField } from '@/components/ui/DatePickerField'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import type { Cliente, ClienteFormData } from '@/types/cliente'
@@ -30,6 +31,7 @@ export function ClienteForm({
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<ClienteFormData>({
     resolver: zodResolver(clienteSchema),
@@ -64,11 +66,19 @@ export function ClienteForm({
         {...register('telefone')}
       />
 
-      <Input
-        label="Data de nascimento (opcional)"
-        type="date"
-        error={errors.dataNascimento?.message}
-        {...register('dataNascimento')}
+      <Controller
+        name="dataNascimento"
+        control={control}
+        render={({ field }) => (
+          <DatePickerField
+            label="Data de nascimento (opcional)"
+            value={field.value ?? ''}
+            onChange={field.onChange}
+            error={errors.dataNascimento?.message}
+            clearable
+            placeholder="Opcional"
+          />
+        )}
       />
 
       <Textarea
