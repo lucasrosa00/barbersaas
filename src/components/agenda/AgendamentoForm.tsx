@@ -82,7 +82,7 @@ export function AgendamentoForm({
           valorComDesconto: z
             .union([
               z.literal(''),
-              z.coerce.number().min(0.01, 'Valor deve ser maior que zero'),
+              z.coerce.number().min(0, 'Valor não pode ser negativo'),
             ])
             .transform((v): number | undefined => (v === '' ? undefined : v)),
           status: z.enum(statusValues),
@@ -375,7 +375,7 @@ export function AgendamentoForm({
           <Input
             label="Valor com desconto (opcional)"
             type="number"
-            min={0.01}
+            min={0}
             step={0.01}
             placeholder={formatCurrency(servicoSelecionado.valor)}
             error={errors.valorComDesconto?.message}
@@ -383,7 +383,7 @@ export function AgendamentoForm({
           />
           <p className="text-xs text-neutral-500">
             Preço do serviço: {formatCurrency(servicoSelecionado.valor)} — deixe vazio
-            para usar o valor cadastrado
+            para usar o valor cadastrado ou informe 0 se não houve cobrança
           </p>
         </div>
       )}
