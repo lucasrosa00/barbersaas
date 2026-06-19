@@ -8,6 +8,7 @@ interface BarbeiroFormModalProps {
   onClose: () => void
   onSubmit: (data: BarbeiroFormData) => void
   barbeiro?: Barbeiro
+  totalBarbeiros: number
 }
 
 export function BarbeiroFormModal({
@@ -15,6 +16,7 @@ export function BarbeiroFormModal({
   onClose,
   onSubmit,
   barbeiro,
+  totalBarbeiros,
 }: BarbeiroFormModalProps) {
   const isEditing = !!barbeiro
 
@@ -32,6 +34,7 @@ export function BarbeiroFormModal({
       <BarbeiroForm
         key={barbeiro?.id ?? 'new'}
         defaultValues={barbeiro}
+        totalBarbeiros={totalBarbeiros}
         onSubmit={handleSubmit}
         onCancel={onClose}
         submitLabel={isEditing ? 'Salvar alterações' : 'Cadastrar'}

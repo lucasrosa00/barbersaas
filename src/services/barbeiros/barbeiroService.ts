@@ -9,6 +9,7 @@ interface BarbeiroApiDto {
   diasTrabalho: string[]
   horarioInicio: string
   horarioFim: string
+  ordemExibicao: number
 }
 
 function mapBarbeiro(dto: BarbeiroApiDto, empresaId: string): Barbeiro {
@@ -21,6 +22,7 @@ function mapBarbeiro(dto: BarbeiroApiDto, empresaId: string): Barbeiro {
     diasTrabalho: dto.diasTrabalho as Barbeiro['diasTrabalho'],
     horarioInicio: dto.horarioInicio,
     horarioFim: dto.horarioFim,
+    ordemExibicao: dto.ordemExibicao,
   }
 }
 

@@ -2,6 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { barbeiroService } from '@/services/barbeiros/barbeiroService'
 import type { Barbeiro, BarbeiroFormData } from '@/types/barbeiro'
 
+function sortByOrdem(barbeiros: Barbeiro[]) {
+  return [...barbeiros].sort(
+    (a, b) => a.ordemExibicao - b.ordemExibicao || a.nome.localeCompare(b.nome),
+  )
+}
+
 export function useBarbeiros(empresaId: string) {
   const [barbeiros, setBarbeiros] = useState<Barbeiro[]>([])
   const [search, setSearch] = useState('')
@@ -12,7 +18,7 @@ export function useBarbeiros(empresaId: string) {
     setIsLoading(true)
     try {
       const data = await barbeiroService.list(empresaId)
-      setBarbeiros(data)
+      setBarbeiros(sortByOrdem(data))
     } finally {
       setIsLoading(false)
     }
@@ -30,27 +36,27 @@ export function useBarbeiros(empresaId: string) {
 
   const createBarbeiro = useCallback(
     async (data: BarbeiroFormData) => {
-      const novo = await barbeiroService.create(empresaId, data)
-      setBarbeiros((prev) => [...prev, novo])
-      return novo
+      await barbeiroService.create(empresaId, data)
+      await load()
     },
-    [empresaId],
+    [empresaId, load],
   )
 
   const updateBarbeiro = useCallback(
     async (id: string, data: BarbeiroFormData) => {
-      const atualizado = await barbeiroService.update(empresaId, id, data)
-      setBarbeiros((prev) =>
-        prev.map((b) => (b.id === id ? atualizado : b)),
-      )
+      await barbeiroService.update(empresaId, id, data)
+      await load()
     },
-    [empresaId],
+    [empresaId, load],
   )
 
-  const deleteBarbeiro = useCallback(async (id: string) => {
-    await barbeiroService.delete(id)
-    setBarbeiros((prev) => prev.filter((b) => b.id !== id))
-  }, [])
+  const deleteBarbeiro = useCallback(
+    async (id: string) => {
+      await barbeiroService.delete(id)
+      await load()
+    },
+    [load],
+  )
 
   return {
     barbeiros: filteredBarbeiros,

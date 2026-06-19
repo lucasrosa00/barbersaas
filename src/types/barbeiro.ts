@@ -9,6 +9,7 @@ export interface Barbeiro {
   diasTrabalho: DiaSemana[]
   horarioInicio: string
   horarioFim: string
+  ordemExibicao: number
 }
 
 export type BarbeiroFormData = Omit<Barbeiro, 'id' | 'empresaId'>

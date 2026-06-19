@@ -37,6 +37,9 @@ export function BarbeiroCard({ barbeiro, onEdit, onDelete }: BarbeiroCardProps) 
       </div>
 
       <h3 className="text-lg font-semibold text-neutral-900">{barbeiro.nome}</h3>
+      <p className="mt-0.5 text-xs text-neutral-500">
+        Ordem na agenda: {barbeiro.ordemExibicao}
+      </p>
 
       <div className="mt-3 space-y-2 text-sm text-neutral-500">
         <div className="flex items-center gap-2">

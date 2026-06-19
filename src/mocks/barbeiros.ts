@@ -10,6 +10,7 @@ export const mockBarbeiros: Barbeiro[] = [
     diasTrabalho: ['seg', 'ter', 'qua', 'qui', 'sex'],
     horarioInicio: '09:00',
     horarioFim: '18:00',
+    ordemExibicao: 1,
   },
   {
     id: 'bar-002',
@@ -20,6 +21,7 @@ export const mockBarbeiros: Barbeiro[] = [
     diasTrabalho: ['ter', 'qua', 'qui', 'sex', 'sab'],
     horarioInicio: '10:00',
     horarioFim: '19:00',
+    ordemExibicao: 2,
   },
   {
     id: 'bar-003',
@@ -30,6 +32,7 @@ export const mockBarbeiros: Barbeiro[] = [
     diasTrabalho: ['seg', 'qua', 'sex'],
     horarioInicio: '08:00',
     horarioFim: '17:00',
+    ordemExibicao: 3,
   },
   {
     id: 'bar-004',
@@ -40,6 +43,7 @@ export const mockBarbeiros: Barbeiro[] = [
     diasTrabalho: ['seg', 'ter', 'qua', 'qui', 'sex', 'sab'],
     horarioInicio: '09:00',
     horarioFim: '20:00',
+    ordemExibicao: 1,
   },
   {
     id: 'bar-005',
@@ -50,6 +54,7 @@ export const mockBarbeiros: Barbeiro[] = [
     diasTrabalho: ['qua', 'qui', 'sex', 'sab'],
     horarioInicio: '10:00',
     horarioFim: '18:00',
+    ordemExibicao: 2,
   },
   {
     id: 'bar-006',
@@ -60,5 +65,6 @@ export const mockBarbeiros: Barbeiro[] = [
     diasTrabalho: ['seg', 'ter', 'qui', 'sex'],
     horarioInicio: '08:30',
     horarioFim: '17:30',
+    ordemExibicao: 1,
   },
 ]

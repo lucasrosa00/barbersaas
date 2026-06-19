@@ -6,6 +6,7 @@ import { labels } from '@/constants/terminology'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
 import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
 import { TimePickerField } from '@/components/ui/TimePickerField'
 import type { Barbeiro, BarbeiroFormData } from '@/types/barbeiro'
 
@@ -24,6 +25,7 @@ const barbeiroSchema = z
       .min(1, 'Selecione ao menos um dia'),
     horarioInicio: z.string().min(1, 'Horário de início é obrigatório'),
     horarioFim: z.string().min(1, 'Horário de fim é obrigatório'),
+    ordemExibicao: z.coerce.number().int().min(1, 'Informe uma ordem válida'),
   })
   .refine((data) => data.horarioFim > data.horarioInicio, {
     message: 'Horário de fim deve ser posterior ao início',
@@ -34,12 +36,22 @@ type BarbeiroFormValues = z.infer<typeof barbeiroSchema>
 
 interface BarbeiroFormProps {
   defaultValues?: Barbeiro
+  totalBarbeiros: number
   onSubmit: (data: BarbeiroFormData) => void
   onCancel: () => void
   submitLabel?: string
 }
 
-function toFormValues(barbeiro?: Barbeiro): BarbeiroFormValues {
+function toFormValues(
+  barbeiro: Barbeiro | undefined,
+  totalBarbeiros: number,
+  isEditing: boolean,
+): BarbeiroFormValues {
+  const maxOrder = isEditing ? totalBarbeiros : totalBarbeiros + 1
+  const defaultOrder = isEditing
+    ? (barbeiro?.ordemExibicao ?? 1)
+    : Math.max(1, maxOrder)
+
   return {
     nome: barbeiro?.nome ?? '',
     telefone: barbeiro?.telefone ?? '',
@@ -47,6 +59,7 @@ function toFormValues(barbeiro?: Barbeiro): BarbeiroFormValues {
     diasTrabalho: barbeiro?.diasTrabalho ?? [],
     horarioInicio: barbeiro?.horarioInicio ?? '09:00',
     horarioFim: barbeiro?.horarioFim ?? '18:00',
+    ordemExibicao: defaultOrder,
   }
 }
 
@@ -61,15 +74,24 @@ function toBarbeiroFormData(values: BarbeiroFormValues): BarbeiroFormData {
     diasTrabalho: values.diasTrabalho,
     horarioInicio: values.horarioInicio,
     horarioFim: values.horarioFim,
+    ordemExibicao: values.ordemExibicao,
   }
 }
 
 export function BarbeiroForm({
   defaultValues,
+  totalBarbeiros,
   onSubmit,
   onCancel,
   submitLabel = 'Salvar',
 }: BarbeiroFormProps) {
+  const isEditing = !!defaultValues
+  const maxOrder = isEditing ? totalBarbeiros : totalBarbeiros + 1
+  const ordemOptions = Array.from({ length: Math.max(1, maxOrder) }, (_, i) => {
+    const value = String(i + 1)
+    return { value, label: `${i + 1}ª posição` }
+  })
+
   const {
     register,
     control,
@@ -77,7 +99,7 @@ export function BarbeiroForm({
     formState: { errors, isSubmitting },
   } = useForm<BarbeiroFormValues>({
     resolver: zodResolver(barbeiroSchema),
-    defaultValues: toFormValues(defaultValues),
+    defaultValues: toFormValues(defaultValues, totalBarbeiros, isEditing),
   })
 
   return (
@@ -98,6 +120,17 @@ export function BarbeiroForm({
         error={errors.telefone?.message}
         {...register('telefone')}
       />
+
+      <Select
+        label="Ordem de exibição (Agenda)"
+        options={ordemOptions}
+        error={errors.ordemExibicao?.message}
+        {...register('ordemExibicao')}
+      />
+      <p className="-mt-2 text-xs text-neutral-500">
+        Define a posição do profissional nas colunas da agenda. Ao alterar, os
+        demais são reordenados automaticamente.
+      </p>
 
       <Input
         label={labels.specialties.label}

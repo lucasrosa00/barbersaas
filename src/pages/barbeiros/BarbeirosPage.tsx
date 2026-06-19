@@ -94,6 +94,7 @@ export function BarbeirosPage() {
         onClose={handleCloseForm}
         onSubmit={handleSubmit}
         barbeiro={editingBarbeiro}
+        totalBarbeiros={total}
       />
 
       <ConfirmDialog
