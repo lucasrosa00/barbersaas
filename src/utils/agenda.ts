@@ -1,5 +1,7 @@
 import type { Barbeiro } from '@/types/barbeiro'
 import type { AgendamentoEnriquecido } from '@/types/agendamento'
+import type { BloqueioHorario } from '@/types/bloqueioHorario'
+import type { DiaSemana } from '@/constants/diasSemana'
 import {
   generateTimeSlots,
   minutesToTime,
@@ -66,19 +68,87 @@ export function getBarbeiroAgendamentosDoDia(
   })
 }
 
+export function getDiaSemanaFromDate(data: string): DiaSemana {
+  const day = new Date(`${data}T12:00:00`).getDay()
+  const map: Record<number, DiaSemana> = {
+    0: 'dom',
+    1: 'seg',
+    2: 'ter',
+    3: 'qua',
+    4: 'qui',
+    5: 'sex',
+    6: 'sab',
+  }
+  return map[day]
+}
+
+export function getBloqueiosAplicaveis(
+  bloqueios: BloqueioHorario[],
+  data: string,
+  barbeiroId: string,
+): BloqueioHorario[] {
+  const dia = getDiaSemanaFromDate(data)
+  return bloqueios.filter(
+    (bloqueio) =>
+      bloqueio.barbeiroId === barbeiroId &&
+      (bloqueio.tipo === 'fixo'
+        ? bloqueio.dia === dia
+        : bloqueio.data === data),
+  )
+}
+
+function getBloqueioTimeBlocks(
+  bloqueios: BloqueioHorario[],
+  data: string,
+  barbeiroId: string,
+): Array<{ start: number; end: number }> {
+  return getBloqueiosAplicaveis(bloqueios, data, barbeiroId).map((bloqueio) => ({
+    start: timeToMinutes(bloqueio.horarioInicio),
+    end: timeToMinutes(bloqueio.horarioFim),
+  }))
+}
+
+export function hasBloqueioConflict(
+  bloqueios: BloqueioHorario[],
+  data: string,
+  barbeiroId: string,
+  horario: string,
+  duracaoMinutos: number,
+): boolean {
+  const aplicaveis = getBloqueiosAplicaveis(bloqueios, data, barbeiroId)
+
+  return aplicaveis.some((bloqueio) => {
+    const duracaoBloqueio =
+      timeToMinutes(bloqueio.horarioFim) - timeToMinutes(bloqueio.horarioInicio)
+    return appointmentsOverlap(
+      horario,
+      duracaoMinutos,
+      bloqueio.horarioInicio,
+      duracaoBloqueio,
+    )
+  })
+}
+
 export function getBusyBlocks(
   agendamentos: AgendamentoEnriquecido[],
   data: string,
   barbeiroId: string,
   excludeId?: string,
+  bloqueios: BloqueioHorario[] = [],
 ): Array<{ start: number; end: number }> {
-  return getBarbeiroAgendamentosDoDia(agendamentos, data, barbeiroId, excludeId)
-    .map((agendamento) => ({
-      start: timeToMinutes(agendamento.horario),
-      end:
-        timeToMinutes(agendamento.horario) + agendamento.duracaoMinutos,
-    }))
-    .sort((a, b) => a.start - b.start)
+  const appointmentBlocks = getBarbeiroAgendamentosDoDia(
+    agendamentos,
+    data,
+    barbeiroId,
+    excludeId,
+  ).map((agendamento) => ({
+    start: timeToMinutes(agendamento.horario),
+    end: timeToMinutes(agendamento.horario) + agendamento.duracaoMinutos,
+  }))
+
+  const bloqueioBlocks = getBloqueioTimeBlocks(bloqueios, data, barbeiroId)
+
+  return [...appointmentBlocks, ...bloqueioBlocks].sort((a, b) => a.start - b.start)
 }
 
 export function getFreeIntervals(
@@ -109,10 +179,11 @@ export function getHorariosInFreeGaps(
   data: string,
   duracaoMinutos: number,
   excludeId?: string,
+  bloqueios: BloqueioHorario[] = [],
 ): string[] {
   const workStart = timeToMinutes(barbeiro.horarioInicio)
   const workEnd = timeToMinutes(barbeiro.horarioFim)
-  const busyBlocks = getBusyBlocks(agendamentos, data, barbeiro.id, excludeId)
+  const busyBlocks = getBusyBlocks(agendamentos, data, barbeiro.id, excludeId, bloqueios)
   const freeIntervals = getFreeIntervals(workStart, workEnd, busyBlocks)
   const candidates = new Set<string>()
 
@@ -174,6 +245,7 @@ export function getCandidateStartTimes(
   intervaloMinutos: number,
   duracaoMinutos: number,
   excludeId?: string,
+  bloqueios: BloqueioHorario[] = [],
 ): string[] {
   const candidates = new Set<string>()
 
@@ -183,6 +255,7 @@ export function getCandidateStartTimes(
     data,
     duracaoMinutos,
     excludeId,
+    bloqueios,
   )) {
     candidates.add(horario)
   }
@@ -235,13 +308,14 @@ export function getClickableHorarios(
   agendamentos: AgendamentoEnriquecido[],
   data: string,
   intervaloMinutos: number,
+  bloqueios: BloqueioHorario[] = [],
 ): string[] {
   const appointmentEnds = new Set(
     getAppointmentEndTimes(agendamentos, data, barbeiro.id),
   )
   const workStart = timeToMinutes(barbeiro.horarioInicio)
   const workEnd = timeToMinutes(barbeiro.horarioFim)
-  const busyBlocks = getBusyBlocks(agendamentos, data, barbeiro.id)
+  const busyBlocks = getBusyBlocks(agendamentos, data, barbeiro.id, undefined, bloqueios)
   const freeIntervals = getFreeIntervals(workStart, workEnd, busyBlocks)
   const clickable = new Set<string>()
 
@@ -326,6 +400,7 @@ export function canPlaceAgendamentoAt(
   horario: string,
   duracaoMinutos: number,
   excludeId?: string,
+  bloqueios: BloqueioHorario[] = [],
 ): boolean {
   if (!fitsInWorkingHours(horario, duracaoMinutos, barbeiro)) return false
   if (
@@ -338,6 +413,9 @@ export function canPlaceAgendamentoAt(
       excludeId,
     )
   ) {
+    return false
+  }
+  if (hasBloqueioConflict(bloqueios, data, barbeiro.id, horario, duracaoMinutos)) {
     return false
   }
   return true
@@ -410,6 +488,7 @@ export function getHorariosDisponiveis(
   intervaloMinutos: number,
   excludeAgendamentoId?: string,
   horarioAtual?: string,
+  bloqueios: BloqueioHorario[] = [],
 ): string[] {
   const disponiveis = getCandidateStartTimes(
     barbeiro,
@@ -418,6 +497,7 @@ export function getHorariosDisponiveis(
     intervaloMinutos,
     duracaoMinutos,
     excludeAgendamentoId,
+    bloqueios,
   ).filter((slot) => {
     if (!fitsInWorkingHours(slot, duracaoMinutos, barbeiro)) return false
     if (
@@ -428,6 +508,17 @@ export function getHorariosDisponiveis(
         slot,
         duracaoMinutos,
         excludeAgendamentoId,
+      )
+    ) {
+      return false
+    }
+    if (
+      hasBloqueioConflict(
+        bloqueios,
+        data,
+        barbeiro.id,
+        slot,
+        duracaoMinutos,
       )
     ) {
       return false
@@ -446,6 +537,13 @@ export function getHorariosDisponiveis(
       horarioAtual,
       duracaoMinutos,
       excludeAgendamentoId,
+    ) &&
+    !hasBloqueioConflict(
+      bloqueios,
+      data,
+      barbeiro.id,
+      horarioAtual,
+      duracaoMinutos,
     )
   ) {
     return [horarioAtual, ...disponiveis].sort(
@@ -462,6 +560,7 @@ export function getPrimeiroHorarioDisponivel(
   duracaoMinutos: number,
   data: string,
   intervaloMinutos: number,
+  bloqueios: BloqueioHorario[] = [],
 ): string | undefined {
   return getHorariosDisponiveis(
     barbeiro,
@@ -469,6 +568,9 @@ export function getPrimeiroHorarioDisponivel(
     duracaoMinutos,
     data,
     intervaloMinutos,
+    undefined,
+    undefined,
+    bloqueios,
   )[0]
 }
 

@@ -1,6 +1,7 @@
 import {
   Cake,
   Calendar,
+  CalendarOff,
   ClipboardList,
   History,
   LayoutDashboard,
@@ -26,6 +27,7 @@ export const navItems: NavItem[] = [
   { label: labels.professional.many, path: ROUTES.professionals, icon: UserCircle },
   { label: 'Serviços', path: '/servicos', icon: ClipboardList },
   { label: 'Agenda', path: '/agenda', icon: Calendar },
+  { label: 'Bloqueios de Horário', path: '/bloqueios-horario', icon: CalendarOff },
   { label: 'Lista de Espera', path: '/lista-espera', icon: ListOrdered },
   { label: 'Histórico', path: '/historico', icon: History },
   { label: 'Financeiro', path: '/financeiro', icon: Wallet },

@@ -2,13 +2,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { labels } from '@/constants/terminology'
 import type { Barbeiro } from '@/types/barbeiro'
 import type { AgendamentoEnriquecido } from '@/types/agendamento'
+import type { BloqueioHorario } from '@/types/bloqueioHorario'
 import type { Servico } from '@/types/servico'
 import { AgendamentoCard } from '@/components/agenda/AgendamentoCard'
+import { BloqueioAgendaCard } from '@/components/agenda/BloqueioAgendaCard'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import {
   canPlaceAgendamentoAt,
   getAgendaDisplayRange,
   getAgendaTotalHeight,
+  getBloqueiosAplicaveis,
   getClickableHorarios,
   getHeightFromDuracao,
   getHorarioFromTop,
@@ -17,6 +20,7 @@ import {
   isSlotWithinWorkingHours,
   SLOT_HEIGHT_PX,
 } from '@/utils/agenda'
+import { timeToMinutes } from '@/utils/timeSlots'
 import type { IntervaloSlot } from '@/types/empresaConfig'
 
 const DRAG_THRESHOLD_PX = 5
@@ -36,6 +40,7 @@ interface DropPreview {
 interface AgendaGridProps {
   barbeiros: Barbeiro[]
   agendamentos: AgendamentoEnriquecido[]
+  bloqueios: BloqueioHorario[]
   servicos: Servico[]
   data: string
   intervaloSlots: IntervaloSlot
@@ -53,6 +58,7 @@ interface AgendaGridProps {
 export function AgendaGrid({
   barbeiros,
   agendamentos,
+  bloqueios,
   servicos,
   data,
   intervaloSlots,
@@ -110,9 +116,10 @@ export function AgendaGrid({
         horario,
         agendamento.duracaoMinutos,
         agendamento.id,
+        bloqueios,
       )
     },
-    [agendamentos, barbeiros, data, servicos],
+    [agendamentos, barbeiros, bloqueios, data, servicos],
   )
 
   const findColumnAtPoint = useCallback(
@@ -310,6 +317,12 @@ export function AgendaGrid({
               agendamentos,
               data,
               intervaloSlots,
+              bloqueios,
+            )
+            const bloqueiosDoDia = getBloqueiosAplicaveis(
+              bloqueios,
+              data,
+              barbeiro.id,
             )
 
             return (
@@ -394,6 +407,28 @@ export function AgendaGrid({
                       }}
                     />
                   )}
+
+                  {bloqueiosDoDia.map((bloqueio, index) => {
+                    const duracao =
+                      timeToMinutes(bloqueio.horarioFim) -
+                      timeToMinutes(bloqueio.horarioInicio)
+
+                    return (
+                      <div
+                        key={bloqueio.id}
+                        className="pointer-events-none absolute px-0.5"
+                        style={{
+                          top: getTopFromHorario(bloqueio.horarioInicio, gridInicio),
+                          height: getHeightFromDuracao(duracao),
+                          left: 0,
+                          right: 0,
+                          zIndex: 5 + index,
+                        }}
+                      >
+                        <BloqueioAgendaCard bloqueio={bloqueio} />
+                      </div>
+                    )
+                  })}
 
                   {barbeiroAgendamentos.map((ag, index) => {
                     const isDragging = draggingId === ag.id

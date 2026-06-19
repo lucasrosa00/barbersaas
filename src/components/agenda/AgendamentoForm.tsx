@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/Input'
 import { Combobox } from '@/components/ui/Combobox'
 import { Select } from '@/components/ui/Select'
 import type { AgendamentoEnriquecido, AgendamentoFormData } from '@/types/agendamento'
+import type { BloqueioHorario } from '@/types/bloqueioHorario'
 import type { Cliente, ClienteFormData } from '@/types/cliente'
 import type { Barbeiro } from '@/types/barbeiro'
 import type { Servico } from '@/types/servico'
@@ -24,6 +25,8 @@ import {
   getHorariosDisponiveis,
   hasConflict,
 } from '@/utils/agenda'
+import { useAuth } from '@/hooks/useAuth'
+import { useBloqueiosPorData } from '@/hooks/useBloqueiosHorario'
 import { buildAgendamentoConfirmacaoWhatsAppUrl } from '@/utils/whatsapp'
 import { formatCurrency } from '@/utils/formatCurrency'
 
@@ -43,6 +46,7 @@ interface AgendamentoFormProps {
   barbeiros: Barbeiro[]
   servicos: Servico[]
   agendamentos: AgendamentoEnriquecido[]
+  bloqueios?: BloqueioHorario[]
   intervaloSlots: IntervaloSlot
   editingId?: string
   onSubmit: (data: AgendamentoFormData) => void | Promise<void>
@@ -60,6 +64,7 @@ export function AgendamentoForm({
   barbeiros,
   servicos,
   agendamentos,
+  bloqueios = [],
   intervaloSlots,
   editingId,
   onSubmit,
@@ -70,6 +75,7 @@ export function AgendamentoForm({
   isEditing = false,
   empresaNome,
 }: AgendamentoFormProps) {
+  const { user } = useAuth()
   const [clienteFormOpen, setClienteFormOpen] = useState(false)
 
   const agendamentoSchema = useMemo(
@@ -165,6 +171,12 @@ export function AgendamentoForm({
   const duracaoMinutos = watch('duracaoMinutos')
   const valorComDesconto = watch('valorComDesconto')
 
+  const { bloqueios: bloqueiosDaData } = useBloqueiosPorData(
+    user?.empresaId ?? '',
+    dataSelecionada,
+  )
+  const bloqueiosAtivos = bloqueiosDaData.length > 0 ? bloqueiosDaData : bloqueios
+
   const clienteSelecionado = clientes.find((c) => c.id === clienteId)
   const barbeiroSelecionado = barbeiros.find((b) => b.id === barbeiroId)
   const servicoSelecionado = servicos.find((s) => s.id === servicoId)
@@ -195,6 +207,7 @@ export function AgendamentoForm({
       intervaloSlots,
       editingId,
       horario,
+      bloqueiosAtivos,
     )
   }, [
     barbeiroSelecionado,
@@ -202,6 +215,7 @@ export function AgendamentoForm({
     dataSelecionada,
     duracaoMinutos,
     agendamentos,
+    bloqueiosAtivos,
     intervaloSlots,
     editingId,
     horario,

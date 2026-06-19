@@ -9,6 +9,7 @@ import { DatePickerField } from '@/components/ui/DatePickerField'
 import { Select } from '@/components/ui/Select'
 import { useAuth } from '@/hooks/useAuth'
 import { useAgendamentos } from '@/hooks/useAgendamentos'
+import { useBloqueiosPorData } from '@/hooks/useBloqueiosHorario'
 import { useBarbeiros } from '@/hooks/useBarbeiros'
 import { useClientes } from '@/hooks/useClientes'
 import { useEmpresaConfig } from '@/hooks/useEmpresaConfig'
@@ -42,6 +43,7 @@ export function AgendaPage() {
   } = useAgendamentos(empresaId)
 
   const { barbeiros } = useBarbeiros(empresaId)
+  const { bloqueios } = useBloqueiosPorData(empresaId, selectedDate)
   const { clientes, createCliente } = useClientes(empresaId, { all: true })
   const { servicos } = useServicos(empresaId, { all: true })
   const { config: empresaConfig } = useEmpresaConfig()
@@ -322,6 +324,7 @@ export function AgendaPage() {
         <AgendaGrid
           barbeiros={barbeirosVisiveis}
           agendamentos={agendamentosAtivos}
+          bloqueios={bloqueios}
           servicos={servicos}
           data={selectedDate}
           intervaloSlots={intervaloSlots}
@@ -341,6 +344,7 @@ export function AgendaPage() {
         agendamento={editingAgendamento}
         prefilled={prefilled}
         agendamentos={todosAgendamentos}
+        bloqueios={bloqueios}
         clientes={clientes}
         barbeiros={barbeiros}
         servicos={servicos}

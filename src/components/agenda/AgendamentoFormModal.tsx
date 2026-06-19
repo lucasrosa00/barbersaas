@@ -5,6 +5,7 @@ import type { AgendamentoEnriquecido, AgendamentoFormData } from '@/types/agenda
 import type { Cliente, ClienteFormData } from '@/types/cliente'
 import type { Barbeiro } from '@/types/barbeiro'
 import type { Servico } from '@/types/servico'
+import type { BloqueioHorario } from '@/types/bloqueioHorario'
 import type { IntervaloSlot } from '@/types/empresaConfig'
 
 interface AgendamentoFormModalProps {
@@ -15,6 +16,7 @@ interface AgendamentoFormModalProps {
   agendamento?: AgendamentoEnriquecido
   prefilled?: Partial<AgendamentoFormData>
   agendamentos: AgendamentoEnriquecido[]
+  bloqueios?: BloqueioHorario[]
   clientes: Cliente[]
   barbeiros: Barbeiro[]
   servicos: Servico[]
@@ -31,6 +33,7 @@ export function AgendamentoFormModal({
   agendamento,
   prefilled,
   agendamentos,
+  bloqueios = [],
   clientes,
   barbeiros,
   servicos,
@@ -59,6 +62,7 @@ export function AgendamentoFormModal({
         key={resolvedFormKey}
         defaultValues={defaultValues}
         agendamentos={agendamentos}
+        bloqueios={bloqueios}
         editingId={agendamento?.id}
         clientes={clientes}
         barbeiros={barbeiros}

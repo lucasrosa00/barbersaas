@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Pagination } from '@/components/ui/Pagination'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { useAuth } from '@/hooks/useAuth'
+import { useBloqueiosPorData } from '@/hooks/useBloqueiosHorario'
 import { useBarbeiros } from '@/hooks/useBarbeiros'
 import { useClientes } from '@/hooks/useClientes'
 import { useEmpresaConfig } from '@/hooks/useEmpresaConfig'
@@ -46,6 +47,11 @@ export function ListaEsperaPage() {
   const [convertingItem, setConvertingItem] = useState<ListaEsperaItem | undefined>()
   const [removingId, setRemovingId] = useState<string | undefined>()
   const [agendamentos, setAgendamentos] = useState<AgendamentoEnriquecido[]>([])
+
+  const { bloqueios } = useBloqueiosPorData(
+    empresaId,
+    convertingItem?.dataSolicitada ?? '',
+  )
 
   const loadAgendamentos = useCallback(async () => {
     if (!empresaId) return
@@ -100,6 +106,7 @@ export function ListaEsperaPage() {
             servico.duracaoMinutos,
             convertingItem.dataSolicitada,
             intervaloSlots,
+            bloqueios,
           )
         : undefined
 
@@ -111,7 +118,7 @@ export function ListaEsperaPage() {
       horario,
       status: 'agendado',
     }
-  }, [convertingItem, servicos, barbeiros, agendamentos, intervaloSlots])
+  }, [convertingItem, servicos, barbeiros, agendamentos, intervaloSlots, bloqueios])
 
   if (!user) return null
 
@@ -172,6 +179,7 @@ export function ListaEsperaPage() {
         onSubmit={handleConfirmConvert}
         prefilled={prefilledAgendamento}
         agendamentos={agendamentos}
+        bloqueios={bloqueios}
         clientes={clientes}
         barbeiros={barbeiros}
         servicos={servicos}

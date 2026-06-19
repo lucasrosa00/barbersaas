@@ -8,6 +8,7 @@ import { PublicLayout } from '@/layouts/PublicLayout'
 import { AgendaPage } from '@/pages/agenda/AgendaPage'
 import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
 import { LoginPage } from '@/pages/auth/LoginPage'
+import { BloqueiosHorarioPage } from '@/pages/bloqueios/BloqueiosHorarioPage'
 import { BarbeirosPage } from '@/pages/barbeiros/BarbeirosPage'
 import { ClientesPage } from '@/pages/clientes/ClientesPage'
 import { AniversariantesPage } from '@/pages/aniversariantes/AniversariantesPage'
@@ -45,6 +46,7 @@ export const router = createBrowserRouter(
           { path: '/barbeiros', element: <Navigate to={ROUTES.professionals} replace /> },
           { path: '/servicos', element: <ServicosPage /> },
           { path: '/agenda', element: <AgendaPage /> },
+          { path: '/bloqueios-horario', element: <BloqueiosHorarioPage /> },
           { path: '/lista-espera', element: <ListaEsperaPage /> },
           { path: '/historico', element: <HistoricoPage /> },
           { path: '/financeiro', element: <FinanceiroPage /> },
