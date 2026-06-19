@@ -2,6 +2,7 @@ import {
   getStatusLabel,
   getStatusStyles,
 } from '@/constants/agendamentoStatus'
+import { getMetodoPagamentoLabel } from '@/constants/metodoPagamento'
 import type { HistoricoAtendimento } from '@/types/historico'
 import { labels } from '@/constants/terminology'
 import { formatCurrency } from '@/utils/formatCurrency'
@@ -51,6 +52,12 @@ export function HistoricoTable({ registros }: HistoricoTableProps) {
                 <dd className="text-neutral-600">{registro.barbeiroNome}</dd>
               </div>
               <div className="flex justify-between gap-4">
+                <dt className="text-neutral-500">Pagamento</dt>
+                <dd className="text-neutral-600">
+                  {getMetodoPagamentoLabel(registro.metodoPagamento)}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-4">
                 <dt className="text-neutral-500">Valor</dt>
                 <dd className="font-medium text-neutral-900">
                   {formatCurrency(registro.valor)}
@@ -73,6 +80,7 @@ export function HistoricoTable({ registros }: HistoricoTableProps) {
                   {labels.professional.one}
                 </th>
                 <th className="px-4 py-3 font-medium text-neutral-500">Valor</th>
+                <th className="px-4 py-3 font-medium text-neutral-500">Pagamento</th>
                 <th className="px-4 py-3 font-medium text-neutral-500">Status</th>
               </tr>
             </thead>
@@ -96,6 +104,9 @@ export function HistoricoTable({ registros }: HistoricoTableProps) {
                   </td>
                   <td className="px-4 py-3 text-neutral-900">
                     {formatCurrency(registro.valor)}
+                  </td>
+                  <td className="px-4 py-3 text-neutral-600">
+                    {getMetodoPagamentoLabel(registro.metodoPagamento)}
                   </td>
                   <td className="px-4 py-3">
                     <span

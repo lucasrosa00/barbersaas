@@ -1,4 +1,5 @@
 import type { AgendamentoStatus } from '@/types/agendamento'
+import type { MetodoPagamento } from '@/constants/metodoPagamento'
 
 export interface HistoricoAtendimento {
   id: string
@@ -12,6 +13,7 @@ export interface HistoricoAtendimento {
   data: string
   valor: number
   status: AgendamentoStatus
+  metodoPagamento?: MetodoPagamento
 }
 
 export interface HistoricoFiltros {

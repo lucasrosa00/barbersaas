@@ -3,6 +3,7 @@ import type {
   AgendamentoEnriquecido,
   AgendamentoFormData,
   AgendamentoStatus,
+  MetodoPagamento,
 } from '@/types/agendamento'
 
 interface AgendamentoApiDto {
@@ -18,6 +19,7 @@ interface AgendamentoApiDto {
   status: AgendamentoStatus
   duracaoMinutos: number
   valorComDesconto?: number | null
+  metodoPagamento?: MetodoPagamento | null
 }
 
 function mapAgendamento(dto: AgendamentoApiDto, empresaId: string): AgendamentoEnriquecido {
@@ -35,6 +37,7 @@ function mapAgendamento(dto: AgendamentoApiDto, empresaId: string): AgendamentoE
     servicoNome: dto.servicoNome,
     duracaoMinutos: dto.duracaoMinutos,
     valorComDesconto: dto.valorComDesconto ?? undefined,
+    metodoPagamento: dto.metodoPagamento ?? undefined,
   }
 }
 
@@ -48,6 +51,7 @@ function toRequestBody(data: AgendamentoFormData) {
     status: data.status,
     duracaoMinutos: data.duracaoMinutos,
     valorComDesconto: data.valorComDesconto ?? null,
+    metodoPagamento: data.status === 'finalizado' ? (data.metodoPagamento ?? null) : null,
   }
 }
 

@@ -3,6 +3,7 @@ import { mapPagedResult } from '@/services/api/paged'
 import type { PagedResult } from '@/types/pagination'
 import type { HistoricoAtendimento, HistoricoFiltros } from '@/types/historico'
 import type { AgendamentoStatus } from '@/types/agendamento'
+import type { MetodoPagamento } from '@/constants/metodoPagamento'
 import { buildPaginationQuery } from '@/utils/pagination'
 
 interface HistoricoApiDto {
@@ -16,6 +17,7 @@ interface HistoricoApiDto {
   data: string
   valor: number
   status: AgendamentoStatus
+  metodoPagamento?: MetodoPagamento | null
 }
 
 function buildFilterParams(filtros: HistoricoFiltros) {
@@ -40,6 +42,7 @@ function mapHistorico(dto: HistoricoApiDto, empresaId: string): HistoricoAtendim
     data: dto.data,
     valor: Number(dto.valor),
     status: dto.status,
+    metodoPagamento: dto.metodoPagamento ?? undefined,
   }
 }
 

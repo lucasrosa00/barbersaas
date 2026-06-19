@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { MessageCircle, Plus } from 'lucide-react'
 import { labels } from '@/constants/terminology'
 import { AGENDAMENTO_STATUS } from '@/constants/agendamentoStatus'
+import { METODOS_PAGAMENTO } from '@/constants/metodoPagamento'
 import { ClienteFormModal } from '@/components/clientes/ClienteFormModal'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
@@ -25,6 +26,11 @@ import {
 } from '@/utils/agenda'
 import { buildAgendamentoConfirmacaoWhatsAppUrl } from '@/utils/whatsapp'
 import { formatCurrency } from '@/utils/formatCurrency'
+
+const metodoPagamentoValues = METODOS_PAGAMENTO.map((m) => m.value) as [
+  NonNullable<AgendamentoFormData['metodoPagamento']>,
+  ...NonNullable<AgendamentoFormData['metodoPagamento']>[],
+]
 
 const statusValues = AGENDAMENTO_STATUS.map((s) => s.value) as [
   AgendamentoFormData['status'],
@@ -86,6 +92,16 @@ export function AgendamentoForm({
             ])
             .transform((v): number | undefined => (v === '' ? undefined : v)),
           status: z.enum(statusValues),
+          metodoPagamento: z.enum(metodoPagamentoValues).optional(),
+        })
+        .superRefine((data, ctx) => {
+          if (data.status === 'finalizado' && !data.metodoPagamento) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: 'Selecione o método de pagamento',
+              path: ['metodoPagamento'],
+            })
+          }
         })
         .superRefine((data, ctx) => {
           const barbeiro = barbeiros.find((b) => b.id === data.barbeiroId)
@@ -135,6 +151,7 @@ export function AgendamentoForm({
         defaultValues?.duracaoMinutos ?? servicoInicial?.duracaoMinutos ?? 30,
       valorComDesconto: defaultValues?.valorComDesconto ?? undefined,
       status: defaultValues?.status ?? 'agendado',
+      metodoPagamento: defaultValues?.metodoPagamento,
     },
   })
 
@@ -144,6 +161,7 @@ export function AgendamentoForm({
   const horario = watch('horario')
   const dataSelecionada = watch('data')
   const status = watch('status')
+  const metodoPagamento = watch('metodoPagamento')
   const duracaoMinutos = watch('duracaoMinutos')
   const valorComDesconto = watch('valorComDesconto')
 
@@ -201,6 +219,12 @@ export function AgendamentoForm({
       setValue('horario', horariosDisponiveis[0])
     }
   }, [horariosDisponiveis, horario, setValue])
+
+  useEffect(() => {
+    if (status !== 'finalizado' && metodoPagamento) {
+      setValue('metodoPagamento', undefined)
+    }
+  }, [status, metodoPagamento, setValue])
 
   const canCancel =
     isEditing &&
@@ -467,6 +491,19 @@ export function AgendamentoForm({
           }))}
           error={errors.status?.message}
           {...register('status')}
+        />
+      )}
+
+      {isEditing && status === 'finalizado' && (
+        <Select
+          label="Método de pagamento"
+          placeholder="Selecione o método de pagamento"
+          options={METODOS_PAGAMENTO.map((m) => ({
+            value: m.value,
+            label: m.label,
+          }))}
+          error={errors.metodoPagamento?.message}
+          {...register('metodoPagamento')}
         />
       )}
 

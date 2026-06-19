@@ -5,6 +5,9 @@ export type AgendamentoStatus =
   | 'finalizado'
   | 'cancelado'
 
+export type { MetodoPagamento } from '@/constants/metodoPagamento'
+import type { MetodoPagamento } from '@/constants/metodoPagamento'
+
 export interface Agendamento {
   id: string
   empresaId: string
@@ -16,6 +19,7 @@ export interface Agendamento {
   duracaoMinutos: number
   valorComDesconto?: number
   status: AgendamentoStatus
+  metodoPagamento?: MetodoPagamento
 }
 
 export type AgendamentoFormData = Omit<Agendamento, 'id' | 'empresaId'>

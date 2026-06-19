@@ -46,6 +46,7 @@ export const mockAgendamentos: Agendamento[] = [
     horario: '09:00',
     duracaoMinutos: 25,
     status: 'finalizado',
+    metodoPagamento: 'pix',
   },
   {
     id: 'agd-005',
