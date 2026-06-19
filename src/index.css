@@ -68,3 +68,21 @@
   border-radius: 0.5rem;
   font-size: 0.875rem;
 }
+
+.date-picker-field .rdp-dropdowns {
+  gap: 0.375rem;
+}
+
+.date-picker-field .rdp-dropdown {
+  border-radius: 0.375rem;
+  border: 1px solid #d4d4d4;
+  background: #fff;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  color: #171717;
+}
+
+.date-picker-field .rdp-dropdown:focus-visible {
+  outline: 2px solid rgb(163 163 163 / 0.5);
+  outline-offset: 1px;
+}

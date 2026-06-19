@@ -3,9 +3,13 @@ import { createPortal } from 'react-dom'
 import { DayPicker } from 'react-day-picker'
 import { ptBR } from 'react-day-picker/locale'
 import { Calendar, X } from 'lucide-react'
-import { formatDateBR } from '@/utils/formatDate'
-import { parseLocalISODate } from '@/utils/datePicker'
-import { toISODate } from '@/utils/timeSlots'
+import {
+  formatISODateToBR,
+  formatPartialBRDateInput,
+  parseBRDateToISO,
+  parseLocalISODate,
+  toLocalISODate,
+} from '@/utils/datePicker'
 import 'react-day-picker/style.css'
 
 interface DatePickerFieldProps {
@@ -19,6 +23,8 @@ interface DatePickerFieldProps {
   clearable?: boolean
   autoWidthDesktop?: boolean
   hideLabel?: boolean
+  fromYear?: number
+  toYear?: number
 }
 
 interface PopoverPosition {
@@ -45,30 +51,46 @@ export function DatePickerField({
   value,
   onChange,
   error,
-  placeholder = 'Selecione a data',
+  placeholder = 'dd/mm/aaaa',
   disabled = false,
   id,
   clearable = false,
   autoWidthDesktop = false,
   hideLabel = false,
+  fromYear,
+  toYear,
 }: DatePickerFieldProps) {
   const generatedId = useId()
   const fieldId = id ?? generatedId
   const containerRef = useRef<HTMLDivElement>(null)
-  const triggerRef = useRef<HTMLButtonElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const popoverRef = useRef<HTMLDivElement>(null)
   const [open, setOpen] = useState(false)
   const [position, setPosition] = useState<PopoverPosition | null>(null)
+  const [inputText, setInputText] = useState(() => formatISODateToBR(value))
+  const [isEditing, setIsEditing] = useState(false)
+  const [inputError, setInputError] = useState<string | null>(null)
+
+  const currentYear = new Date().getFullYear()
+  const resolvedFromYear = fromYear ?? currentYear - 100
+  const resolvedToYear = toYear ?? currentYear + 10
 
   const selected = parseLocalISODate(value)
   const desktopClass = autoWidthDesktop ? 'sm:w-auto sm:max-w-none' : ''
+  const displayError = error ?? inputError ?? undefined
+
+  useEffect(() => {
+    if (!isEditing) {
+      setInputText(formatISODateToBR(value))
+    }
+  }, [value, isEditing])
 
   useLayoutEffect(() => {
-    if (!open || !triggerRef.current) return
+    if (!open || !inputRef.current) return
 
     function updatePosition() {
-      if (!triggerRef.current) return
-      setPosition(getPopoverPosition(triggerRef.current))
+      if (!inputRef.current) return
+      setPosition(getPopoverPosition(inputRef.current))
     }
 
     updatePosition()
@@ -101,14 +123,72 @@ export function DatePickerField({
 
   function handleSelect(date: Date | undefined) {
     if (!date) return
-    onChange(toISODate(date))
+    const iso = toLocalISODate(date)
+    onChange(iso)
+    setInputText(formatISODateToBR(iso))
+    setInputError(null)
+    setIsEditing(false)
     setOpen(false)
   }
 
   function handleClear(event: React.MouseEvent) {
     event.stopPropagation()
     onChange('')
+    setInputText('')
+    setInputError(null)
     setOpen(false)
+  }
+
+  function handleInputChange(event: React.ChangeEvent<HTMLInputElement>) {
+    setInputError(null)
+    setInputText(formatPartialBRDateInput(event.target.value))
+  }
+
+  function handleInputFocus() {
+    setIsEditing(true)
+    setInputError(null)
+  }
+
+  function handleInputBlur() {
+    setIsEditing(false)
+
+    if (!inputText.trim()) {
+      onChange('')
+      setInputText('')
+      setInputError(null)
+      return
+    }
+
+    const parsed = parseBRDateToISO(inputText)
+    if (parsed === null) {
+      setInputError('Data inválida. Use dd/mm/aaaa.')
+      setInputText(formatISODateToBR(value))
+      return
+    }
+
+    onChange(parsed)
+    setInputText(formatISODateToBR(parsed))
+    setInputError(null)
+  }
+
+  function handleInputKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'Enter') {
+      event.preventDefault()
+      inputRef.current?.blur()
+    }
+
+    if (event.key === 'ArrowDown' || event.key === 'F4') {
+      event.preventDefault()
+      setOpen(true)
+    }
+
+    if (event.key === 'Escape') {
+      setOpen(false)
+      setInputText(formatISODateToBR(value))
+      setInputError(null)
+      setIsEditing(false)
+      inputRef.current?.blur()
+    }
   }
 
   const popover =
@@ -129,6 +209,9 @@ export function DatePickerField({
               selected={selected}
               onSelect={handleSelect}
               defaultMonth={selected}
+              captionLayout="dropdown"
+              startMonth={new Date(resolvedFromYear, 0)}
+              endMonth={new Date(resolvedToYear, 11)}
               className="date-picker-field"
             />
           </div>,
@@ -150,37 +233,53 @@ export function DatePickerField({
         </label>
 
         <div className="relative">
-          <button
-            ref={triggerRef}
+          <input
+            ref={inputRef}
             id={fieldId}
-            type="button"
+            type="text"
+            inputMode="numeric"
+            autoComplete="off"
             disabled={disabled}
-            onClick={() => setOpen((current) => !current)}
-            className={`flex w-full items-center justify-between gap-2 rounded-lg border bg-white px-3.5 py-2.5 text-left text-[16px] transition-colors focus:outline-none focus:ring-2 focus:ring-neutral-400/50 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm ${desktopClass} ${
-              error
+            placeholder={placeholder}
+            value={inputText}
+            onChange={handleInputChange}
+            onFocus={handleInputFocus}
+            onBlur={handleInputBlur}
+            onKeyDown={handleInputKeyDown}
+            className={`box-border min-w-0 max-w-full w-full rounded-lg border bg-white py-2.5 pl-3.5 pr-20 text-[16px] text-neutral-900 placeholder:text-neutral-500 transition-colors focus:outline-none focus:ring-2 focus:ring-neutral-400/50 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm ${desktopClass} ${
+              displayError
                 ? 'border-neutral-900 focus:border-neutral-900'
                 : 'border-neutral-300 focus:border-neutral-900'
             }`}
-          >
-            <span className={value ? 'text-neutral-900' : 'text-neutral-500'}>
-              {value ? formatDateBR(value) : placeholder}
-            </span>
-            <Calendar className="h-4 w-4 shrink-0 text-neutral-400" aria-hidden />
-          </button>
+          />
 
-          {clearable && value && !disabled && (
+          <div className="absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center gap-0.5">
+            {clearable && value && !disabled && (
+              <button
+                type="button"
+                onClick={handleClear}
+                className="rounded p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"
+                aria-label="Limpar data"
+                tabIndex={-1}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+
             <button
               type="button"
-              onClick={handleClear}
-              className="absolute right-10 top-1/2 -translate-y-1/2 rounded p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"
-              aria-label="Limpar data"
+              disabled={disabled}
+              onClick={() => setOpen((current) => !current)}
+              className="rounded p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label="Abrir calendário"
+              tabIndex={-1}
             >
-              <X className="h-4 w-4" />
+              <Calendar className="h-4 w-4" aria-hidden />
             </button>
-          )}
+          </div>
         </div>
 
-        {error && <p className="text-xs text-neutral-600">{error}</p>}
+        {displayError && <p className="text-xs text-neutral-600">{displayError}</p>}
       </div>
 
       {popover}

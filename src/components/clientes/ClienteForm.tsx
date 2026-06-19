@@ -76,7 +76,7 @@ export function ClienteForm({
             onChange={field.onChange}
             error={errors.dataNascimento?.message}
             clearable
-            placeholder="Opcional"
+            placeholder="dd/mm/aaaa"
           />
         )}
       />
