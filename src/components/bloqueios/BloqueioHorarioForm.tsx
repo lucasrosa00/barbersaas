@@ -10,6 +10,7 @@ import { DatePickerField } from '@/components/ui/DatePickerField'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { TimePickerField } from '@/components/ui/TimePickerField'
+import { AGENDA_BOOKING_STEP_MINUTES } from '@/utils/agenda'
 import type { Barbeiro } from '@/types/barbeiro'
 import type { BloqueioHorario, BloqueioHorarioFormData } from '@/types/bloqueioHorario'
 
@@ -59,13 +60,17 @@ type BloqueioFormValues = z.infer<typeof bloqueioSchema>
 interface BloqueioHorarioFormProps {
   barbeiros: Barbeiro[]
   defaultValues?: BloqueioHorario
+  prefilled?: Partial<BloqueioHorarioFormData>
   onSubmit: (data: BloqueioHorarioFormData) => void | Promise<void>
   onCancel: () => void
   submitLabel?: string
 }
 
-function toFormValues(bloqueio?: BloqueioHorario): BloqueioFormValues {
-  return {
+function toFormValues(
+  bloqueio?: BloqueioHorario,
+  prefilled?: Partial<BloqueioHorarioFormData>,
+): BloqueioFormValues {
+  const base: BloqueioFormValues = {
     barbeiroId: bloqueio?.barbeiroId ?? '',
     tipo: bloqueio?.tipo ?? 'fixo',
     dia: bloqueio?.dia,
@@ -73,6 +78,16 @@ function toFormValues(bloqueio?: BloqueioHorario): BloqueioFormValues {
     horarioInicio: bloqueio?.horarioInicio ?? '12:00',
     horarioFim: bloqueio?.horarioFim ?? '13:00',
     motivo: bloqueio?.motivo ?? '',
+  }
+
+  if (!prefilled) return base
+
+  return {
+    ...base,
+    ...prefilled,
+    // Normaliza campos opcionais de acordo com o tipo
+    dia: prefilled.tipo === 'fixo' ? prefilled.dia ?? base.dia : base.dia,
+    data: prefilled.tipo === 'pontual' ? prefilled.data ?? base.data : base.data,
   }
 }
 
@@ -91,6 +106,7 @@ function toFormData(values: BloqueioFormValues): BloqueioHorarioFormData {
 export function BloqueioHorarioForm({
   barbeiros,
   defaultValues,
+  prefilled,
   onSubmit,
   onCancel,
   submitLabel = 'Salvar',
@@ -102,7 +118,7 @@ export function BloqueioHorarioForm({
     formState: { errors, isSubmitting },
   } = useForm<BloqueioFormValues>({
     resolver: zodResolver(bloqueioSchema),
-    defaultValues: toFormValues(defaultValues),
+    defaultValues: toFormValues(defaultValues, prefilled),
   })
 
   const tipo = useWatch({ control, name: 'tipo' })
@@ -170,6 +186,7 @@ export function BloqueioHorarioForm({
               value={field.value}
               onChange={field.onChange}
               error={errors.horarioInicio?.message}
+              intervalMinutes={AGENDA_BOOKING_STEP_MINUTES}
             />
           )}
         />
@@ -182,6 +199,7 @@ export function BloqueioHorarioForm({
               value={field.value}
               onChange={field.onChange}
               error={errors.horarioFim?.message}
+              intervalMinutes={AGENDA_BOOKING_STEP_MINUTES}
             />
           )}
         />

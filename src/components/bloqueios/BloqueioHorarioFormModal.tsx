@@ -9,6 +9,7 @@ interface BloqueioHorarioFormModalProps {
   onSubmit: (data: BloqueioHorarioFormData) => void | Promise<void>
   barbeiros: Barbeiro[]
   bloqueio?: BloqueioHorario
+  prefilled?: Partial<BloqueioHorarioFormData>
 }
 
 export function BloqueioHorarioFormModal({
@@ -17,6 +18,7 @@ export function BloqueioHorarioFormModal({
   onSubmit,
   barbeiros,
   bloqueio,
+  prefilled,
 }: BloqueioHorarioFormModalProps) {
   const isEditing = !!bloqueio
 
@@ -35,6 +37,7 @@ export function BloqueioHorarioFormModal({
         key={bloqueio?.id ?? 'new'}
         barbeiros={barbeiros}
         defaultValues={bloqueio}
+        prefilled={prefilled}
         onSubmit={handleSubmit}
         onCancel={onClose}
         submitLabel={isEditing ? 'Salvar alterações' : 'Cadastrar bloqueio'}

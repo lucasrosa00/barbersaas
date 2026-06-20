@@ -3,6 +3,8 @@ import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { AgendaGrid } from '@/components/agenda/AgendaGrid'
 import { AgendamentoFormModal } from '@/components/agenda/AgendamentoFormModal'
 import { AgendamentoMoveModal } from '@/components/agenda/AgendamentoMoveModal'
+import { NovoItemAgendaDialog } from '@/components/agenda/NovoItemAgendaDialog'
+import { BloqueioHorarioFormModal } from '@/components/bloqueios/BloqueioHorarioFormModal'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Button } from '@/components/ui/Button'
 import { DatePickerField } from '@/components/ui/DatePickerField'
@@ -19,13 +21,15 @@ import type {
   AgendamentoEnriquecido,
   AgendamentoFormData,
 } from '@/types/agendamento'
+import type { BloqueioHorarioFormData } from '@/types/bloqueioHorario'
 import { labels } from '@/constants/terminology'
 import { formatDateBR, formatWeekdayLong, isToday } from '@/utils/formatDate'
-import { addDays } from '@/utils/timeSlots'
+import { addDays, minutesToTime, timeToMinutes } from '@/utils/timeSlots'
 import {
   AGENDAMENTO_STATUS,
   getAgendaStatusLegendColor,
 } from '@/constants/agendamentoStatus'
+import { bloqueioHorarioService } from '@/services/bloqueios/bloqueioHorarioService'
 
 export function AgendaPage() {
   const { user } = useAuth()
@@ -43,7 +47,7 @@ export function AgendaPage() {
   } = useAgendamentos(empresaId)
 
   const { barbeiros } = useBarbeiros(empresaId)
-  const { bloqueios } = useBloqueiosPorData(empresaId, selectedDate)
+  const { bloqueios, reload: reloadBloqueios } = useBloqueiosPorData(empresaId, selectedDate)
   const { clientes, createCliente } = useClientes(empresaId, { all: true })
   const { servicos } = useServicos(empresaId, { all: true })
   const { config: empresaConfig } = useEmpresaConfig()
@@ -57,6 +61,14 @@ export function AgendaPage() {
     AgendamentoEnriquecido | undefined
   >()
   const [prefilled, setPrefilled] = useState<Partial<AgendamentoFormData>>()
+  const [bloqueioFormOpen, setBloqueioFormOpen] = useState(false)
+  const [bloqueioPrefilled, setBloqueioPrefilled] = useState<
+    Partial<BloqueioHorarioFormData> | undefined
+  >()
+  const [novoItemPrompt, setNovoItemPrompt] = useState<{
+    barbeiroId?: string
+    horario?: string
+  } | null>(null)
   const [selectedBarbeiroId, setSelectedBarbeiroId] = useState('')
   const [pendingMove, setPendingMove] = useState<{
     agendamento: AgendamentoEnriquecido
@@ -73,6 +85,39 @@ export function AgendaPage() {
   } | null>(null)
 
   const isDesktop = useMediaQuery('(min-width: 1024px)')
+
+  function addMinutes(horario: string, minutes: number): string {
+    return minutesToTime(timeToMinutes(horario) + minutes)
+  }
+
+  function openAgendamentoFromPrompt() {
+    const prompt = novoItemPrompt
+    setNovoItemPrompt(null)
+
+    if (prompt?.barbeiroId && prompt?.horario) {
+      handleSlotCreateAgendamento(prompt.barbeiroId, prompt.horario)
+      return
+    }
+
+    handleOpenCreateAgendamento()
+  }
+
+  function openBloqueioFromPrompt() {
+    const prompt = novoItemPrompt
+    setNovoItemPrompt(null)
+
+    const horarioInicio = prompt?.horario ?? '09:00'
+    const horarioFim = addMinutes(horarioInicio, 60)
+
+    setBloqueioPrefilled({
+      tipo: 'pontual',
+      data: selectedDate,
+      horarioInicio,
+      horarioFim,
+      ...(prompt?.barbeiroId ? { barbeiroId: prompt.barbeiroId } : {}),
+    })
+    setBloqueioFormOpen(true)
+  }
 
   useEffect(() => {
     if (barbeiros.length === 0) {
@@ -99,7 +144,7 @@ export function AgendaPage() {
     [agendamentos],
   )
 
-  function handleOpenCreate() {
+  function handleOpenCreateAgendamento() {
     setEditingAgendamento(undefined)
     setFormKey(`create-${Date.now()}`)
     setPrefilled({
@@ -113,7 +158,7 @@ export function AgendaPage() {
     setFormOpen(true)
   }
 
-  function handleSlotClick(barbeiroId: string, horario: string) {
+  function handleSlotCreateAgendamento(barbeiroId: string, horario: string) {
     setEditingAgendamento(undefined)
     setFormKey(`slot-${barbeiroId}-${horario}`)
     setPrefilled({
@@ -123,6 +168,14 @@ export function AgendaPage() {
       status: 'agendado',
     })
     setFormOpen(true)
+  }
+
+  function handleOpenCreate() {
+    setNovoItemPrompt({})
+  }
+
+  function handleSlotClick(barbeiroId: string, horario: string) {
+    setNovoItemPrompt({ barbeiroId, horario })
   }
 
   function handleAgendamentoClick(agendamento: AgendamentoEnriquecido) {
@@ -136,6 +189,11 @@ export function AgendaPage() {
     setFormOpen(false)
     setEditingAgendamento(undefined)
     setPrefilled(undefined)
+  }
+
+  function handleCloseBloqueioForm() {
+    setBloqueioFormOpen(false)
+    setBloqueioPrefilled(undefined)
   }
 
   async function handleSubmit(data: AgendamentoFormData) {
@@ -163,6 +221,11 @@ export function AgendaPage() {
         clienteNome,
       })
     }
+  }
+
+  async function handleSubmitBloqueio(data: BloqueioHorarioFormData) {
+    await bloqueioHorarioService.create(data)
+    await reloadBloqueios()
   }
 
   function handleConfirmRemarcar() {
@@ -279,10 +342,31 @@ export function AgendaPage() {
           />
         </div>
 
-        <Button onClick={handleOpenCreate} className="w-full sm:w-auto">
-          <Plus className="h-4 w-4" />
-          Novo Agendamento
-        </Button>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <Button onClick={handleOpenCreate} className="w-full sm:w-auto">
+            <Plus className="h-4 w-4" />
+            Novo Agendamento
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setBloqueioPrefilled({
+                tipo: 'pontual',
+                data: selectedDate,
+                horarioInicio: '09:00',
+                horarioFim: '10:00',
+                ...(!isDesktop && selectedBarbeiroId
+                  ? { barbeiroId: selectedBarbeiroId }
+                  : {}),
+              })
+              setBloqueioFormOpen(true)
+            }}
+            className="w-full sm:w-auto"
+          >
+            <Plus className="h-4 w-4" />
+            Novo Bloqueio
+          </Button>
+        </div>
       </div>
 
       {!isDesktop && barbeiros.length > 0 && (
@@ -351,6 +435,21 @@ export function AgendaPage() {
         intervaloSlots={intervaloSlots}
         formKey={formKey}
         onCreateCliente={createCliente}
+      />
+
+      <BloqueioHorarioFormModal
+        open={bloqueioFormOpen}
+        onClose={handleCloseBloqueioForm}
+        onSubmit={handleSubmitBloqueio}
+        barbeiros={barbeiros}
+        prefilled={bloqueioPrefilled}
+      />
+
+      <NovoItemAgendaDialog
+        open={!!novoItemPrompt}
+        onClose={() => setNovoItemPrompt(null)}
+        onSelectAgendamento={openAgendamentoFromPrompt}
+        onSelectBloqueio={openBloqueioFromPrompt}
       />
 
       <ConfirmDialog
