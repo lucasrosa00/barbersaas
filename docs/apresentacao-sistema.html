@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Apresentação — Sistema de Agendamentos</title>
+    <style>
+      :root {
+        --bg: #0a0a0a;
+        --surface: #ffffff;
+        --muted: #525252;
+        --border: #e5e5e5;
+        --accent: #171717;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+        background: #f5f5f5;
+        color: var(--accent);
+        line-height: 1.5;
+      }
+
+      .slide {
+        width: 297mm;
+        min-height: 210mm;
+        margin: 0 auto 24px;
+        background: var(--surface);
+        padding: 14mm 16mm;
+        box-shadow: 0 8px 32px rgb(0 0 0 / 8%);
+        display: flex;
+        flex-direction: column;
+        page-break-after: always;
+        break-after: page;
+      }
+
+      .slide.cover {
+        background: linear-gradient(135deg, #0a0a0a 0%, #262626 100%);
+        color: #fff;
+        justify-content: center;
+        text-align: center;
+      }
+
+      .slide.cover h1 {
+        font-size: 42px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin-bottom: 12px;
+      }
+
+      .slide.cover p {
+        font-size: 18px;
+        color: #d4d4d4;
+        max-width: 620px;
+        margin: 0 auto;
+      }
+
+      .slide.cover .badge {
+        display: inline-block;
+        margin-top: 32px;
+        padding: 8px 16px;
+        border: 1px solid #525252;
+        border-radius: 999px;
+        font-size: 13px;
+        color: #a3a3a3;
+      }
+
+      .slide-header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 10mm;
+        padding-bottom: 4mm;
+        border-bottom: 2px solid var(--accent);
+      }
+
+      .slide-number {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
+      .slide-title {
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      .slide-subtitle {
+        font-size: 14px;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+
+      .content-grid {
+        display: grid;
+        grid-template-columns: 1fr 1.15fr;
+        gap: 8mm;
+        flex: 1;
+        align-items: start;
+      }
+
+      .content-grid.single-image {
+        grid-template-columns: 1fr 1.35fr;
+      }
+
+      .content-grid.stacked-images {
+        grid-template-columns: 1fr 1.35fr;
+      }
+
+      /* Slide 7: agenda + confirmação na mesma página */
+      .slide-agenda-confirmacao {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+
+      .slide-agenda-confirmacao .slide-header {
+        margin-bottom: 5mm;
+      }
+
+      .agenda-layout {
+        display: grid;
+        grid-template-columns: 1fr 0.36fr;
+        gap: 5mm;
+        flex: 1;
+        align-items: start;
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+
+      .agenda-layout .left-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 3mm;
+        min-width: 0;
+      }
+
+      .agenda-layout .caption {
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 1.5mm;
+      }
+
+      .agenda-layout .agenda-panel .screenshot-wrap img {
+        width: 100%;
+        max-height: 108mm;
+        object-fit: contain;
+        object-position: top left;
+      }
+
+      .agenda-layout .confirm-panel {
+        min-width: 0;
+      }
+
+      .agenda-layout .confirm-panel .screenshot-wrap img {
+        width: 100%;
+        max-height: 138mm;
+        object-fit: contain;
+        object-position: top center;
+      }
+
+      .slide-agenda-confirmacao .text-block h3 {
+        font-size: 12px;
+        margin: 6px 0 3px;
+      }
+
+      .slide-agenda-confirmacao .text-block p,
+      .slide-agenda-confirmacao .text-block ul {
+        font-size: 11px;
+      }
+
+      .slide-agenda-confirmacao .text-block li {
+        margin-bottom: 2px;
+      }
+
+      .slide-agenda-confirmacao .text-block ul {
+        margin-bottom: 6px;
+      }
+
+      .text-block h3 {
+        font-size: 15px;
+        font-weight: 700;
+        margin: 14px 0 6px;
+      }
+
+      .text-block h3:first-child {
+        margin-top: 0;
+      }
+
+      .text-block p {
+        font-size: 13px;
+        color: #404040;
+        margin-bottom: 8px;
+      }
+
+      .text-block ul {
+        margin: 0 0 10px 18px;
+        font-size: 13px;
+        color: #404040;
+      }
+
+      .text-block li {
+        margin-bottom: 5px;
+      }
+
+      .highlight {
+        background: #fafafa;
+        border-left: 3px solid var(--accent);
+        padding: 10px 12px;
+        margin-top: 10px;
+        font-size: 12px;
+        color: #525252;
+      }
+
+      .screenshot-wrap {
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow: hidden;
+        background: #fafafa;
+        box-shadow: 0 4px 20px rgb(0 0 0 / 6%);
+      }
+
+      .screenshot-wrap img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      .screenshot-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 6mm;
+      }
+
+      .screenshot-stack .caption {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: -4mm;
+      }
+
+      .phone-shot {
+        max-width: none;
+        margin: 0;
+      }
+
+      .slide.pricing {
+        justify-content: center;
+        text-align: center;
+      }
+
+      .price-box {
+        margin: 24px auto 0;
+        max-width: 480px;
+        border: 2px solid var(--accent);
+        border-radius: 16px;
+        padding: 32px 28px;
+      }
+
+      .price-box .amount {
+        font-size: 48px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+      }
+
+      .price-box .period {
+        font-size: 16px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+
+      .price-box ul {
+        list-style: none;
+        margin: 24px 0 0;
+        text-align: left;
+        font-size: 14px;
+        color: #404040;
+      }
+
+      .price-box li {
+        padding: 8px 0;
+        border-top: 1px solid var(--border);
+      }
+
+      .price-box li:first-child {
+        border-top: none;
+      }
+
+      .footer-note {
+        margin-top: auto;
+        padding-top: 6mm;
+        font-size: 11px;
+        color: #a3a3a3;
+        text-align: center;
+      }
+
+      @media print {
+        body {
+          background: #fff;
+        }
+
+        .slide {
+          margin: 0;
+          box-shadow: none;
+          width: 100%;
+          min-height: 210mm;
+          max-height: 210mm;
+          overflow: hidden;
+          page-break-inside: avoid;
+          break-inside: avoid;
+        }
+
+        .slide-agenda-confirmacao .agenda-panel .screenshot-wrap img {
+          max-height: 100mm;
+        }
+
+        .slide-agenda-confirmacao .confirm-panel .screenshot-wrap img {
+          max-height: 128mm;
+        }
+
+        @page {
+          size: A4 landscape;
+          margin: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Capa -->
+    <section class="slide cover">
+      <h1>Sistema de Agendamentos</h1>
+      <p>
+        Plataforma completa para empresas que trabalham com horários marcados:
+        salões, clínicas, consultorias, estúdios e prestadores de serviço.
+        Agenda, equipe, clientes e financeiro em um só lugar.
+      </p>
+      <span class="badge">Apresentação comercial · 2026</span>
+    </section>
+
+    <!-- 1 Login -->
+    <section class="slide">
+      <div class="slide-header">
+        <div>
+          <div class="slide-title">Login</div>
+          <div class="slide-subtitle">Acesso seguro ao painel administrativo</div>
+        </div>
+        <div class="slide-number">01 / 13</div>
+      </div>
+      <div class="content-grid single-image">
+        <div class="text-block">
+          <h3>O que é</h3>
+          <p>
+            Tela de entrada do sistema. Cada usuário acessa com e-mail e senha
+            vinculados à sua empresa, garantindo isolamento dos dados entre
+            clientes do SaaS (multiempresa).
+          </p>
+          <h3>Funcionalidades</h3>
+          <ul>
+            <li>Autenticação por credenciais</li>
+            <li>Interface limpa e responsiva (desktop e mobile)</li>
+            <li>Acesso direto ao painel após login bem-sucedido</li>
+          </ul>
+          <div class="highlight">
+            Ideal para donos, gerentes e equipe administrativa acessarem o
+            sistema de qualquer lugar.
+          </div>
+        </div>
+        <div class="screenshot-wrap">
+          <img src="../src/pages/references/login.png" alt="Tela de login" />
+        </div>
+      </div>
+    </section>
+
+    <!-- 2 Dashboard -->
+    <section class="slide">
+      <div class="slide-header">
+        <div>
+          <div class="slide-title">Dashboard</div>
+          <div class="slide-subtitle">Visão geral do dia e da operação</div>
+        </div>
+        <div class="slide-number">02 / 13</div>
+      </div>
+      <div class="content-grid single-image">
+        <div class="text-block">
+          <h3>O que é</h3>
+          <p>
+            Painel inicial com resumo executivo. Ao abrir o sistema, a empresa
+            vê os números e compromissos mais importantes do momento.
+          </p>
+          <h3>Funcionalidades</h3>
+          <ul>
+            <li>Total de agendamentos do dia e pendentes de confirmação</li>
+            <li>Faturamento registrado no dia</li>
+            <li>Quantidade de clientes na lista de espera</li>
+            <li>Total de clientes cadastrados</li>
+            <li>Lista resumida da agenda de hoje com status</li>
+            <li>Gráfico de faturamento dos últimos 7 dias</li>
+            <li>Atalhos: novo agendamento, adicionar à fila, novo cliente</li>
+          </ul>
+          <div class="highlight">
+            Permite tomar decisões rápidas sem navegar por várias telas.
+          </div>
+        </div>
+        <div class="screenshot-wrap">
+          <img src="../src/pages/references/dashboard.png" alt="Dashboard" />
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 Clientes -->
+    <section class="slide">
+      <div class="slide-header">
+        <div>
+          <div class="slide-title">Clientes</div>
+          <div class="slide-subtitle">Cadastro e gestão da base de clientes</div>
+        </div>
+        <div class="slide-number">03 / 13</div>
+      </div>
+      <div class="content-grid single-image">
+        <div class="text-block">
+          <h3>O que é</h3>
+          <p>
+            Central de cadastro de quem consome os serviços da empresa. Todos
+            os agendamentos ficam vinculados a um cliente.
+          </p>
+          <h3>Funcionalidades</h3>
+          <ul>
+            <li>Listagem com busca por nome</li>
+            <li>Cadastro de nome, telefone e data de nascimento (opcional)</li>
+            <li>Campo de observações para preferências e histórico informal</li>
+            <li>Edição e exclusão de registros</li>
+            <li>Paginação para bases maiores</li>
+          </ul>
+          <div class="highlight">
+            Observações ajudam a personalizar o atendimento — ex.: preferências,
+            restrições ou frequência de visita.
+          </div>
+        </div>
+        <div class="screenshot-wrap">
+          <img src="../src/pages/references/clientes.png" alt="Clientes" />
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 Aniversariantes -->
+    <section class="slide">
+      <div class="slide-header">
+        <div>
+          <div class="slide-title">Aniversariantes</div>
+          <div class="slide-subtitle">Relacionamento e campanhas sazonais</div>
+        </div>
+        <div class="slide-number">04 / 13</div>
+      </div>
+      <div class="content-grid single-image">
+        <div class="text-block">
+          <h3>O que é</h3>
+          <p>
+            Página dedicada a clientes que fazem aniversário no mês selecionado.
+            Facilita ações de fidelização e marketing direto.
+          </p>
+          <h3>Funcionalidades</h3>
+          <ul>
+            <li>Filtro por mês do ano</li>
+            <li>Lista de aniversariantes com data e telefone</li>
+            <li>Botão WhatsApp para contato imediato</li>
+            <li>Mensagem pronta para oferecer promoção ou desconto</li>
+          </ul>
+          <div class="highlight">
+            Transforma dados de cadastro em oportunidade comercial — ideal para
+            reativar clientes e aumentar retorno.
+          </div>
+        </div>
+        <div class="screenshot-wrap">
+          <img
+            src="../src/pages/references/aniversariantes.png"
+            alt="Aniversariantes"
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 Profissionais -->
+    <section class="slide">
+      <div class="slide-header">
+        <div>
+          <div class="slide-title">Profissionais</div>
+          <div class="slide-subtitle">Equipe, horários e especialidades</div>
+        </div>
+        <div class="slide-number">05 / 13</div>
+      </div>
+      <div class="content-grid single-image">
+        <div class="text-block">
+          <h3>O que é</h3>
+          <p>
+            Gestão dos profissionais que prestam serviço — cabeleireiros,
+            terapeutas, consultores, técnicos ou qualquer perfil com agenda
+            individual.
+          </p>
+          <h3>Funcionalidades</h3>
+          <ul>
+            <li>Cadastro com telefone e especialidades</li>
+            <li>Horário de início e fim de expediente por profissional</li>
+            <li>Dias da semana em que atende</li>
+            <li>Ordem de exibição na agenda</li>
+            <li>Busca, edição e exclusão</li>
+          </ul>
+          <div class="highlight">
+            Cada profissional pode ter disponibilidade diferente, refletida
+            automaticamente na grade da agenda.
+          </div>
+        </div>
+        <div class="screenshot-wrap">
+          <img
+            src="../src/pages/references/profissionais.png"
+            alt="Profissionais"
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- 6 Serviços -->
+    <section class="slide">
+      <div class="slide-header">
+        <div>
+          <div class="slide-title">Serviços</div>
+          <div class="slide-subtitle">Catálogo de serviços e duração</div>
+        </div>
+        <div class="slide-number">06 / 13</div>
+      </div>
+      <div class="content-grid single-image">
+        <div class="text-block">
+          <h3>O que é</h3>
+          <p>
+            Cadastro dos serviços oferecidos pela empresa, com valor e tempo
+            estimado — base para agendamento e cálculo financeiro.
+          </p>
+          <h3>Funcionalidades</h3>
+          <ul>
+            <li>Nome, valor e duração em minutos</li>
+            <li>Vinculação com profissionais habilitados</li>
+            <li>Busca por nome</li>
+            <li>Edição e exclusão</li>
+          </ul>
+          <div class="highlight">
+            A duração do serviço define o tamanho do bloco na agenda e evita
+            sobreposição de horários.
+          </div>
+        </div>
+        <div class="screenshot-wrap">
+          <img src="../src/pages/references/servicos.png" alt="Serviços" />
+        </div>
+      </div>
+    </section>
+
+    <!-- 7 Agenda + Confirmação -->
+    <section class="slide slide-agenda-confirmacao">
+      <div class="slide-header">
+        <div>
+          <div class="slide-title">Agenda e Confirmação de Presença</div>
+          <div class="slide-subtitle">Núcleo do sistema · grade visual + link para o cliente</div>
+        </div>
+        <div class="slide-number">07 / 13</div>
+      </div>
+      <div class="agenda-layout">
+        <div class="left-stack">
+          <div class="text-block">
+            <h3>Agenda</h3>
+            <p>
+              Grade visual por profissional e horário. Crie, visualize e
+              reorganize compromissos do dia com clareza.
+            </p>
+            <ul>
+              <li>Coluna por profissional com horário de trabalho</li>
+              <li>Status: agendado, confirmado, em atendimento, finalizado, cancelado</li>
+              <li>Clique no horário livre para agendar ou bloquear</li>
+              <li>Botões Novo Agendamento e Novo Bloqueio</li>
+            </ul>
+            <h3>Confirmação de presença</h3>
+            <p>
+              Link enviado ao cliente (WhatsApp). Ele confirma presença online,
+              sem login — status atualiza na agenda.
+            </p>
+            <ul>
+              <li>Detalhes: data, horário, serviço e profissional</li>
+              <li>Botão &quot;Confirmar presença&quot;</li>
+              <li>Reduz faltas e ligações de confirmação</li>
+            </ul>
+          </div>
+          <div class="agenda-panel">
+            <div class="caption">Painel — Agenda</div>
+            <div class="screenshot-wrap">
+              <img src="../src/pages/references/agenda.png" alt="Agenda" />
+            </div>
+          </div>
+        </div>
+        <div class="confirm-panel">
+          <div class="caption">Cliente — Confirmação</div>
+          <div class="screenshot-wrap phone-shot">
+            <img
+              src="../src/pages/references/confirmacao.png"
+              alt="Confirmação de presença"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8 Bloqueios -->
+    <section class="slide">
+      <div class="slide-header">
+        <div>
+          <div class="slide-title">Bloqueios de Horário</div>
+          <div class="slide-subtitle">Indisponibilidade planejada da equipe</div>
+        </div>
+        <div class="slide-number">08 / 13</div>
+      </div>
+      <div class="content-grid single-image">
+        <div class="text-block">
+          <h3>O que é</h3>
+          <p>
+            Registro de períodos em que o profissional não atende — almoço,
+            reunião, folga ou imprevisto — sem ocupar slot com agendamento
+            fictício.
+          </p>
+          <h3>Funcionalidades</h3>
+          <ul>
+            <li><strong>Fixo:</strong> repete semanalmente (ex.: toda segunda, 12h–13h)</li>
+            <li><strong>Pontual:</strong> vale apenas em uma data específica</li>
+            <li>Filtro por profissional e tipo</li>
+            <li>Horário início/fim e motivo do bloqueio</li>
+            <li>Criação também direto pela agenda</li>
+            <li>Bloqueios aparecem na grade e impedem conflitos</li>
+          </ul>
+        </div>
+        <div class="screenshot-wrap">
+          <img
+            src="../src/pages/references/bloqueiohorario.png"
+            alt="Bloqueios de horário"
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- 9 Lista de Espera -->
+    <section class="slide">
+      <div class="slide-header">
+        <div>
+          <div class="slide-title">Lista de Espera</div>
+          <div class="slide-subtitle">Capture demanda quando a agenda lotar</div>
+        </div>
+        <div class="slide-number">09 / 13</div>
+      </div>
+      <div class="content-grid single-image">
+        <div class="text-block">
+          <h3>O que é</h3>
+          <p>
+            Fila de clientes que desejam horário mas não encontraram vaga na
+            data desejada. Evita perder o contato quando a agenda está cheia.
+          </p>
+          <h3>Funcionalidades</h3>
+          <ul>
+            <li>Cadastro com cliente, serviço, data desejada e profissional (opcional)</li>
+            <li>Ordenação por prioridade (subir/descer na fila)</li>
+            <li>Conversão em agendamento com um clique</li>
+            <li>Remoção da fila após agendar ou desistência</li>
+          </ul>
+          <div class="highlight">
+            Transforma &quot;não temos horário&quot; em oportunidade futura de
+            faturamento.
+          </div>
+        </div>
+        <div class="screenshot-wrap">
+          <img
+            src="../src/pages/references/listaespera.png"
+            alt="Lista de espera"
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- 10 Histórico -->
+    <section class="slide">
+      <div class="slide-header">
+        <div>
+          <div class="slide-title">Histórico</div>
+          <div class="slide-subtitle">Consulta completa de atendimentos</div>
+        </div>
+        <div class="slide-number">10 / 13</div>
+      </div>
+      <div class="content-grid single-image">
+        <div class="text-block">
+          <h3>O que é</h3>
+          <p>
+            Registro consolidado de todos os agendamentos — passados, presentes
+            e futuros — com filtros e total faturado.
+          </p>
+          <h3>Funcionalidades</h3>
+          <ul>
+            <li>Filtro por cliente, profissional e intervalo de datas</li>
+            <li>Colunas: data, cliente, serviço, profissional, valor, pagamento, status</li>
+            <li>Total faturado dos atendimentos finalizados no período</li>
+            <li>Visão de confirmados, agendados e finalizados</li>
+            <li>Paginação para grandes volumes</li>
+          </ul>
+          <div class="highlight">
+            Útil para auditoria, relatórios e acompanhamento de desempenho por
+            profissional ou período.
+          </div>
+        </div>
+        <div class="screenshot-wrap">
+          <img src="../src/pages/references/historico.png" alt="Histórico" />
+        </div>
+      </div>
+    </section>
+
+    <!-- 11 Financeiro -->
+    <section class="slide">
+      <div class="slide-header">
+        <div>
+          <div class="slide-title">Financeiro</div>
+          <div class="slide-subtitle">Faturamento e movimentações</div>
+        </div>
+        <div class="slide-number">11 / 13</div>
+      </div>
+      <div class="content-grid single-image">
+        <div class="text-block">
+          <h3>O que é</h3>
+          <p>
+            Módulo financeiro integrado à operação. Entradas geradas
+            automaticamente quando um agendamento é finalizado.
+          </p>
+          <h3>Funcionalidades</h3>
+          <ul>
+            <li>Faturamento do dia, semana e mês</li>
+            <li>Gráficos: últimos 7 dias e últimos 6 meses</li>
+            <li>Lista de movimentações (entradas e saídas)</li>
+            <li>Registro manual de receitas ou despesas</li>
+            <li>Filtro por profissional</li>
+            <li>Método de pagamento registrado no atendimento (débito, crédito, pix, dinheiro)</li>
+          </ul>
+          <div class="highlight">
+            Elimina retrabalho: finalizou o atendimento, o valor entra no
+            financeiro automaticamente.
+          </div>
+        </div>
+        <div class="screenshot-wrap">
+          <img src="../src/pages/references/financeiro.png" alt="Financeiro" />
+        </div>
+      </div>
+    </section>
+
+    <!-- 12 Configurações -->
+    <section class="slide">
+      <div class="slide-header">
+        <div>
+          <div class="slide-title">Configurações do Sistema</div>
+          <div class="slide-subtitle">Personalização da empresa e regras de agenda</div>
+        </div>
+        <div class="slide-number">12 / 13</div>
+      </div>
+      <div class="content-grid single-image">
+        <div class="text-block">
+          <h3>O que é</h3>
+          <p>
+            Área para o proprietário definir identidade da empresa e parâmetros
+            que afetam toda a operação de agendamento.
+          </p>
+          <h3>Funcionalidades</h3>
+          <ul>
+            <li>Dados da empresa: nome, logo, telefone, endereço</li>
+            <li>Horário de abertura e fechamento</li>
+            <li>Intervalo da grade (15, 30 ou 60 minutos)</li>
+            <li>Preferências: confirmação manual, link no WhatsApp, agendamento no mesmo dia</li>
+          </ul>
+          <div class="highlight">
+            Configuração única reflete em agenda, bloqueios, histórico e
+            confirmações enviadas aos clientes.
+          </div>
+        </div>
+        <div class="screenshot-wrap">
+          <img
+            src="../src/pages/references/configuracoes.png"
+            alt="Configurações"
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- 13 Preço -->
+    <section class="slide pricing">
+      <div class="slide-header" style="border: none; justify-content: center">
+        <div style="text-align: center">
+          <div class="slide-title">Investimento</div>
+          <div class="slide-subtitle">Plano anual · acesso completo ao sistema</div>
+        </div>
+      </div>
+      <div class="price-box">
+        <div class="amount">R$ 300</div>
+        <div class="period">por ano · todas as funcionalidades incluídas</div>
+        <ul>
+          <li>✓ Agenda multi-profissional com status e bloqueios</li>
+          <li>✓ Clientes, serviços, lista de espera e histórico</li>
+          <li>✓ Confirmação de presença por link (WhatsApp)</li>
+          <li>✓ Financeiro integrado aos atendimentos</li>
+          <li>✓ Dashboard, aniversariantes e configurações</li>
+          <li>✓ Suporte para implantação inicial</li>
+        </ul>
+      </div>
+      <p style="margin-top: 24px; font-size: 14px; color: var(--muted); max-width: 520px; margin-inline: auto">
+        Pagamento parcelado disponível, sujeito à taxa da maquininha ou
+        intermediador de pagamento utilizado.
+      </p>
+      <p class="footer-note">
+        Sistema de Agendamentos · Demonstração comercial · Contato via WhatsApp
+      </p>
+    </section>
+  </body>
+</html>
