@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { AgendaGrid } from '@/components/agenda/AgendaGrid'
 import { AgendamentoFormModal } from '@/components/agenda/AgendamentoFormModal'
@@ -33,6 +34,7 @@ import { bloqueioHorarioService } from '@/services/bloqueios/bloqueioHorarioServ
 
 export function AgendaPage() {
   const { user } = useAuth()
+  const location = useLocation()
   const empresaId = user?.empresaId ?? ''
 
   const {
@@ -118,6 +120,13 @@ export function AgendaPage() {
     })
     setBloqueioFormOpen(true)
   }
+
+  useEffect(() => {
+    const state = location.state as { selectedDate?: string } | null
+    if (state?.selectedDate) {
+      setSelectedDate(state.selectedDate)
+    }
+  }, [location.state, setSelectedDate])
 
   useEffect(() => {
     if (barbeiros.length === 0) {

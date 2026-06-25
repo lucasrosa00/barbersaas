@@ -1,6 +1,7 @@
 import { Menu } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import { getNavItemByPath } from '@/config/navigation'
+import { NotificationBell } from '@/components/layout/NotificationBell'
 import { labels } from '@/constants/terminology'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -34,9 +35,12 @@ export function Header({ onMenuClick }: HeaderProps) {
         </div>
       </div>
 
-      <span className="hidden shrink-0 rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium capitalize text-neutral-900 sm:inline-flex">
-        {user?.role}
-      </span>
+      <div className="flex shrink-0 items-center gap-2">
+        <NotificationBell />
+        <span className="hidden rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium capitalize text-neutral-900 sm:inline-flex">
+          {user?.role}
+        </span>
+      </div>
     </header>
   )
 }

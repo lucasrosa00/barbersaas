@@ -93,12 +93,14 @@ export function AgendamentoForm({
             .number()
             .int('Duração deve ser um número inteiro')
             .min(5, 'Duração mínima de 5 minutos'),
-          valorComDesconto: z
-            .union([
-              z.literal(''),
-              z.coerce.number().min(0, 'Valor não pode ser negativo'),
-            ])
-            .transform((v): number | undefined => (v === '' ? undefined : v)),
+          valorComDesconto: z.preprocess(
+            (value) => {
+              if (value === '' || value === undefined || value === null) return undefined
+              const parsed = Number(value)
+              return Number.isNaN(parsed) ? value : parsed
+            },
+            z.number().min(0, 'Valor não pode ser negativo').optional(),
+          ),
           status: z.enum(statusValues),
           metodoPagamento: z.enum(metodoPagamentoValues).optional(),
         })
