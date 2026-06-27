@@ -1,0 +1,216 @@
+######################################
+# FRONTEND PRINCIPAL
+######################################
+server {
+    client_max_body_size 30M;
+    # aceita qualquer domínio ou IP
+    server_name pinktech.com.br www.pinktech.com.br;
+
+    location /uploads/ {
+        alias /home/ubuntu/projetos/cardapio-images/;
+
+        access_log off;
+
+        expires 30d;
+        add_header Cache-Control "public, max-age=2592000, immutable";
+
+        try_files $uri =404;
+    }
+
+    location /videos/ {
+        alias /home/ubuntu/videos/;
+
+        access_log off;
+
+        expires 30d;
+        add_header Cache-Control "public, max-age=2592000, immutable";
+
+        try_files $uri =404;
+    }
+
+    ######################################
+    # AGENDA FÁCIL — logos e assets estáticos
+    ######################################
+    location /src-agenda/ {
+        alias /home/ubuntu/src-agenda/;
+
+        access_log off;
+
+        expires 30d;
+        add_header Cache-Control "public, max-age=2592000, immutable";
+
+        try_files $uri =404;
+    }
+
+    ######################################
+    # RENOVAÇÕES — API (.NET localhost:7757)
+    ######################################
+    location /renewal/api/ {
+        proxy_pass http://127.0.0.1:7757/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    ######################################
+    # RENOVAÇÕES — Frontend (Node localhost:7758)
+    ######################################
+    location /renewal/ {
+        proxy_pass http://127.0.0.1:7758/;
+
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    ######################################
+    # BARBEARIA — API (.NET localhost:7755)
+    ######################################
+    location /barbearia/api/ {
+        proxy_pass http://127.0.0.1:7755/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    ######################################
+    # AGENDA FÁCIL — Frontend (serve em 7756)
+    ######################################
+    location /agendamento/ {
+        proxy_pass http://127.0.0.1:7756;
+
+        proxy_http_version 1.1;
+
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    ######################################
+    # CARDÁPIO
+    ######################################
+    location / {
+        proxy_pass http://localhost:3000;
+
+        proxy_http_version 1.1;
+
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    listen [::]:443 ssl ipv6only=on; # managed by Certbot
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/pinktech.com.br/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/pinktech.com.br/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+}
+
+######################################
+# BACKEND - API .NET (PORTA 8000 → 5000)
+######################################
+server {
+    client_max_body_size 30M;
+
+    listen 8000;
+    listen [::]:8000;
+
+    # aceita qualquer domínio ou IP
+    server_name api;
+
+    location / {
+        proxy_pass http://localhost:5000;
+
+        proxy_http_version 1.1;
+
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+
+####################################################
+# BACKEND 3 - BARBEARIA (8500 → localhost:7755)
+####################################################
+server {
+    client_max_body_size 30M;
+
+    # Porta pública 8500
+    listen 8500;
+    listen [::]:8500;
+
+    server_name api7755;
+
+    location / {
+        proxy_pass http://localhost:7755;
+
+        proxy_http_version 1.1;
+
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+
+######################################
+# REDIRECIONAMENTO HTTP -> HTTPS
+######################################
+server {
+    if ($host = www.pinktech.com.br) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+    if ($host = pinktech.com.br) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+    listen 80;
+    listen [::]:80;
+    server_name pinktech.com.br www.pinktech.com.br;
+    return 404; # managed by Certbot
+}
+
+# Frontend .env (produção):
+#   VITE_BASE_PATH=/agendamento/
+#   VITE_API_URL=/barbearia/api
+#   VITE_APP_LOGO_URL=https://www.pinktech.com.br/src-agenda/logo.png
+#   VITE_APP_FAVICON_URL=https://www.pinktech.com.br/src-agenda/logo-transparent.png
+#
+# Na VPS:
+#   sudo cp script/nginx-default.conf.example /etc/nginx/sites-available/default
+#   sudo nginx -t
+#   sudo systemctl reload nginx

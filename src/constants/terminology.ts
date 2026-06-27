@@ -7,7 +7,13 @@ export const branding = {
   themeColor: '#6d28d9',
 } as const
 
-export const appLogoUrl = `${import.meta.env.BASE_URL}logo.png`
+const baseUrl = import.meta.env.BASE_URL
+
+export const appLogoUrl =
+  import.meta.env.VITE_APP_LOGO_URL || `${baseUrl}logo.png`
+
+export const appFaviconUrl =
+  import.meta.env.VITE_APP_FAVICON_URL || `${baseUrl}logo-transparent.png`
 
 export const ROUTES = {
   professionals: '/profissionais',
