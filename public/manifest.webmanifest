@@ -1,0 +1,25 @@
+{
+  "name": "Agenda Fácil",
+  "short_name": "Agenda Fácil",
+  "description": "Agendamentos, equipe e clientes em um só lugar.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#6d28d9",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

@@ -1,11 +1,20 @@
 /** Rótulos genéricos exibidos na interface (API interna mantém nomes legados). */
 
+export const branding = {
+  appName: 'Agenda Fácil',
+  description:
+    'Agendamentos, equipe e clientes em um só lugar. Multiempresa, pronto para escalar.',
+  themeColor: '#6d28d9',
+} as const
+
+export const appLogoUrl = `${import.meta.env.BASE_URL}logo.png`
+
 export const ROUTES = {
   professionals: '/profissionais',
 } as const
 
 export const labels = {
-  appName: 'AgendamentoSaaS',
+  appName: branding.appName,
 
   professional: {
     one: 'Profissional',
@@ -52,7 +61,6 @@ export const labels = {
 
   public: {
     headline: 'Gerencie sua empresa com inteligência',
-    subheadline:
-      'Agendamentos, equipe e clientes em um só lugar. Multiempresa, pronto para escalar.',
+    subheadline: branding.description,
   },
 } as const

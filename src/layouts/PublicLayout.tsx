@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom'
-import { CalendarDays } from 'lucide-react'
+import { AppLogo } from '@/components/ui/AppLogo'
 import { labels } from '@/constants/terminology'
 
 export function PublicLayout() {
@@ -7,9 +7,7 @@ export function PublicLayout() {
     <div className="flex min-h-screen bg-white">
       <aside className="hidden w-1/2 flex-col justify-between bg-black p-12 lg:flex">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white">
-            <CalendarDays className="h-5 w-5 text-black" />
-          </div>
+          <AppLogo size={40} />
           <span className="text-xl font-bold text-white">{labels.appName}</span>
         </div>
 
@@ -27,9 +25,7 @@ export function PublicLayout() {
 
       <main className="flex w-full flex-col items-center justify-center bg-neutral-50 px-6 py-12 lg:w-1/2">
         <div className="mb-8 flex items-center gap-3 lg:hidden">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-black">
-            <CalendarDays className="h-5 w-5 text-white" />
-          </div>
+          <AppLogo size={40} />
           <span className="text-xl font-bold text-neutral-900">{labels.appName}</span>
         </div>
 

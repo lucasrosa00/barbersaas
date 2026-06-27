@@ -5,6 +5,7 @@ import { navItems } from '@/config/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/Button'
 import { EmpresaLogo } from '@/components/ui/EmpresaLogo'
+import { labels } from '@/constants/terminology'
 
 interface SidebarProps {
   onLogout: () => void
@@ -36,11 +37,11 @@ export function Sidebar({
         <EmpresaLogo
           src={user?.empresa.logo}
           alt={user?.empresa.nome ?? 'Logo da empresa'}
-          size="lg"
-          variant="light"
+          size="md"
+          variant="dark"
         />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-white">Sistema</p>
+          <p className="truncate text-sm font-semibold text-white">{labels.appName}</p>
           <p className="truncate text-xs text-neutral-400">{user?.empresa.nome}</p>
         </div>
         {onMobileClose && (

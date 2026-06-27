@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { CalendarCheck, CheckCircle2, Loader2, XCircle } from 'lucide-react'
+import { CheckCircle2, Loader2, XCircle } from 'lucide-react'
+import { AppLogo } from '@/components/ui/AppLogo'
 import { Button } from '@/components/ui/Button'
 import { getStatusLabel } from '@/constants/agendamentoStatus'
 import { labels } from '@/constants/terminology'
@@ -92,9 +93,7 @@ export function ConfirmacaoPage() {
     <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 py-10">
       <div className="w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
         <div className="mb-6 flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-neutral-900">
-            <CalendarCheck className="h-5 w-5 text-white" />
-          </div>
+          <AppLogo size={44} />
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">
               Confirmação de presença
