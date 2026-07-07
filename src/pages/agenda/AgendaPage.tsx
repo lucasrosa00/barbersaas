@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, RefreshCw } from 'lucide-react'
 import { AgendaGrid } from '@/components/agenda/AgendaGrid'
 import { AgendamentoFormModal } from '@/components/agenda/AgendamentoFormModal'
 import { AgendamentoMoveModal } from '@/components/agenda/AgendamentoMoveModal'
@@ -31,6 +31,7 @@ import {
   getAgendaStatusLegendColor,
 } from '@/constants/agendamentoStatus'
 import { bloqueioHorarioService } from '@/services/bloqueios/bloqueioHorarioService'
+import { useHeaderActionsDispatch } from '@/contexts/HeaderActionsContext'
 
 export function AgendaPage() {
   const { user } = useAuth()
@@ -43,9 +44,11 @@ export function AgendaPage() {
     selectedDate,
     setSelectedDate,
     isLoading,
+    isReloading,
     createAgendamento,
     updateAgendamento,
     cancelAgendamento,
+    reload: reloadAgendamentos,
   } = useAgendamentos(empresaId)
 
   const { barbeiros } = useBarbeiros(empresaId)
@@ -87,10 +90,32 @@ export function AgendaPage() {
   } | null>(null)
 
   const isDesktop = useMediaQuery('(min-width: 1024px)')
+  const { setActions, clearActions } = useHeaderActionsDispatch()
 
   function addMinutes(horario: string, minutes: number): string {
     return minutesToTime(timeToMinutes(horario) + minutes)
   }
+
+  const handleReloadAgendamentos = useCallback(async () => {
+    await Promise.all([reloadAgendamentos(), reloadBloqueios()])
+  }, [reloadAgendamentos, reloadBloqueios])
+
+  useLayoutEffect(() => {
+    setActions(
+      <button
+        type="button"
+        onClick={handleReloadAgendamentos}
+        disabled={isReloading}
+        className="rounded-lg p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
+        aria-label="Recarregar agendamentos"
+        title="Recarregar agendamentos"
+      >
+        <RefreshCw className={`h-5 w-5 ${isReloading ? 'animate-spin' : ''}`} />
+      </button>,
+    )
+
+    return () => clearActions()
+  }, [handleReloadAgendamentos, isReloading, setActions, clearActions])
 
   function openAgendamentoFromPrompt() {
     const prompt = novoItemPrompt

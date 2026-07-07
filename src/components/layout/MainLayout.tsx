@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
+import { HeaderActionsProvider } from '@/contexts/HeaderActionsContext'
 import { useAuth } from '@/hooks/useAuth'
 
 export function MainLayout() {
@@ -46,11 +47,13 @@ export function MainLayout() {
       />
 
       <div className="lg:pl-64">
-        <Header onMenuClick={openSidebar} />
+        <HeaderActionsProvider>
+          <Header onMenuClick={openSidebar} />
 
-        <main className="min-h-[calc(100dvh-3.5rem)] p-4 sm:min-h-[calc(100dvh-4rem)] sm:p-6">
-          <Outlet />
-        </main>
+          <main className="min-h-[calc(100dvh-3.5rem)] p-4 sm:min-h-[calc(100dvh-4rem)] sm:p-6">
+            <Outlet />
+          </main>
+        </HeaderActionsProvider>
       </div>
     </div>
   )

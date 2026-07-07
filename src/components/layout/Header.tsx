@@ -2,6 +2,7 @@ import { Menu } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import { getNavItemByPath } from '@/config/navigation'
 import { NotificationBell } from '@/components/layout/NotificationBell'
+import { useHeaderActionsState } from '@/contexts/HeaderActionsContext'
 import { labels } from '@/constants/terminology'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -12,6 +13,7 @@ interface HeaderProps {
 export function Header({ onMenuClick }: HeaderProps) {
   const { user } = useAuth()
   const { pathname } = useLocation()
+  const actions = useHeaderActionsState()
   const currentNav = getNavItemByPath(pathname)
 
   return (
@@ -36,6 +38,7 @@ export function Header({ onMenuClick }: HeaderProps) {
       </div>
 
       <div className="flex shrink-0 items-center gap-2">
+        {actions}
         <NotificationBell />
         <span className="hidden rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium capitalize text-neutral-900 sm:inline-flex">
           {user?.role}

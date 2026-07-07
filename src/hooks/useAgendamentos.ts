@@ -12,15 +12,24 @@ export function useAgendamentos(empresaId: string) {
   )
   const [selectedDate, setSelectedDate] = useState(toISODate(new Date()))
   const [isLoading, setIsLoading] = useState(true)
+  const [isReloading, setIsReloading] = useState(false)
 
-  const loadAgendamentos = useCallback(async () => {
+  const loadAgendamentos = useCallback(async (background = false) => {
     if (!empresaId) return
-    setIsLoading(true)
+    if (background) {
+      setIsReloading(true)
+    } else {
+      setIsLoading(true)
+    }
     try {
       const data = await agendamentoService.list(empresaId)
       setAgendamentos(data)
     } finally {
-      setIsLoading(false)
+      if (background) {
+        setIsReloading(false)
+      } else {
+        setIsLoading(false)
+      }
     }
   }, [empresaId])
 
@@ -68,9 +77,10 @@ export function useAgendamentos(empresaId: string) {
     selectedDate,
     setSelectedDate,
     isLoading,
+    isReloading,
     createAgendamento,
     updateAgendamento,
     cancelAgendamento,
-    reload: loadAgendamentos,
+    reload: () => loadAgendamentos(true),
   }
 }
