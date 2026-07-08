@@ -1,5 +1,6 @@
 export type AgendamentoStatus =
   | 'agendado'
+  | 'reservado'
   | 'confirmado'
   | 'em_atendimento'
   | 'finalizado'

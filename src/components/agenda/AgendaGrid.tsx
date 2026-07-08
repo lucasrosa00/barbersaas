@@ -27,6 +27,7 @@ const DRAG_THRESHOLD_PX = 5
 
 const DRAGGABLE_STATUS = new Set([
   'agendado',
+  'reservado',
   'confirmado',
   'em_atendimento',
 ])
