@@ -1,10 +1,10 @@
-import { formatDateBR } from '@/utils/formatDate'
+import { formatDateBRWithWeekday } from '@/utils/formatDate'
 import { formatHorarioIntervalo } from '@/utils/agenda'
 import { buildConfirmacaoPublicUrl } from '@/config/app'
 
 export const WHATSAPP_CONFIRMACAO_PLACEHOLDERS = [
   { token: '{cliente}', description: 'Primeiro nome do cliente' },
-  { token: '{data}', description: 'Data do agendamento (dd/mm/aaaa)' },
+  { token: '{data}', description: 'Data do agendamento (ex.: 07/07/2026 (Terça-feira))' },
   { token: '{horario}', description: 'Horário com duração (ex.: 09:00 — 09:30)' },
   { token: '{servico}', description: 'Nome do serviço' },
   { token: '{profissional}', description: 'Nome do profissional' },
@@ -41,7 +41,7 @@ export function renderConfirmacaoWhatsAppMessage(
 
   const replacements: Record<string, string> = {
     '{cliente}': getPrimeiroNome(vars.clienteNome),
-    '{data}': formatDateBR(vars.data),
+    '{data}': formatDateBRWithWeekday(vars.data),
     '{horario}': formatHorarioIntervalo(vars.horario, vars.duracaoMinutos),
     '{servico}': vars.servicoNome,
     '{profissional}': vars.barbeiroNome,

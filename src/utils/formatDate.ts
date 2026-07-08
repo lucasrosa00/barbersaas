@@ -16,6 +16,16 @@ export function formatDateBR(isoDate: string): string {
   return `${day}/${month}/${year}`
 }
 
+export function formatDateBRWithWeekday(isoDate: string): string {
+  const date = formatDateBR(isoDate)
+  if (!isoDate || date === '—') return date
+
+  const weekday = formatWeekdayLong(isoDate)
+  if (!weekday) return date
+
+  return `${date} (${weekday})`
+}
+
 export function formatWeekdayLong(isoDate: string): string {
   const date = parseISODate(isoDate)
   if (!date) return ''
