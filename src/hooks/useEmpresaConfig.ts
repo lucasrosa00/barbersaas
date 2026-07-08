@@ -4,6 +4,7 @@ import type { EmpresaConfig, EmpresaConfigFormData } from '@/types/empresaConfig
 import type { DadosForm } from '@/components/configuracoes/EmpresaDadosForm'
 import type { HorariosForm } from '@/components/configuracoes/HorariosConfigForm'
 import type { PreferenciasForm } from '@/components/configuracoes/PreferenciasConfigForm'
+import { normalizeMensagemConfirmacaoForSave } from '@/utils/whatsappConfirmacaoTemplate'
 
 export function useEmpresaConfig() {
   const [config, setConfig] = useState<EmpresaConfig | null>(null)
@@ -53,7 +54,15 @@ export function useEmpresaConfig() {
   const savePreferencias = useCallback(async (data: PreferenciasForm) => {
     setIsSaving(true)
     try {
-      const updated = await empresaService.updatePreferencias(data)
+      console.log('data', data)
+      const updated = await empresaService.updatePreferencias({
+        confirmacaoManual: data.confirmacaoManual,
+        enviarLinkConfirmacaoWhatsApp: data.enviarLinkConfirmacaoWhatsApp,
+        mensagemConfirmacaoWhatsApp: normalizeMensagemConfirmacaoForSave(
+          data.mensagemConfirmacaoWhatsApp,
+        ),
+        permitirMesmoDia: data.permitirMesmoDia,
+      })
       setConfig(updated)
       return updated
     } finally {
@@ -79,6 +88,9 @@ export function useEmpresaConfig() {
         const updated = await empresaService.updatePreferencias({
           confirmacaoManual: data.confirmacaoManual,
           enviarLinkConfirmacaoWhatsApp: data.enviarLinkConfirmacaoWhatsApp,
+          mensagemConfirmacaoWhatsApp: normalizeMensagemConfirmacaoForSave(
+            data.mensagemConfirmacaoWhatsApp,
+          ),
           permitirMesmoDia: data.permitirMesmoDia,
         })
         setConfig(updated)

@@ -57,6 +57,7 @@ interface AgendamentoFormProps {
   isEditing?: boolean
   empresaNome?: string
   enviarLinkConfirmacaoWhatsApp?: boolean
+  mensagemConfirmacaoWhatsApp?: string | null
 }
 
 export function AgendamentoForm({
@@ -76,6 +77,7 @@ export function AgendamentoForm({
   isEditing = false,
   empresaNome,
   enviarLinkConfirmacaoWhatsApp = false,
+  mensagemConfirmacaoWhatsApp = null,
 }: AgendamentoFormProps) {
   const { user } = useAuth()
   const [clienteFormOpen, setClienteFormOpen] = useState(false)
@@ -284,6 +286,7 @@ export function AgendamentoForm({
       empresaNome,
       tokenConfirmacao: defaultValues?.tokenConfirmacao,
       enviarLinkConfirmacao: enviarLinkConfirmacaoWhatsApp,
+      mensagemConfirmacaoWhatsApp,
     })
   }, [
     isEditing,
@@ -298,6 +301,7 @@ export function AgendamentoForm({
     defaultValues?.tokenConfirmacao,
     empresaNome,
     enviarLinkConfirmacaoWhatsApp,
+    mensagemConfirmacaoWhatsApp,
   ])
 
   const clienteOptions = useMemo(

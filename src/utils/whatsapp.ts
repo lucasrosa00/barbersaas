@@ -1,6 +1,4 @@
-import { formatDateBR } from '@/utils/formatDate'
-import { formatHorarioIntervalo } from '@/utils/agenda'
-import { buildConfirmacaoPublicUrl } from '@/config/app'
+import { renderConfirmacaoWhatsAppMessage, type ConfirmacaoWhatsAppVars } from '@/utils/whatsappConfirmacaoTemplate'
 
 export function normalizePhoneForWhatsApp(telefone: string): string | null {
   const digits = telefone.replace(/\D/g, '')
@@ -24,59 +22,15 @@ export function buildWhatsAppUrl(telefone: string, message: string): string | nu
   return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
 }
 
-interface AgendamentoConfirmacaoParams {
-  clienteNome: string
-  data: string
-  horario: string
-  duracaoMinutos: number
-  servicoNome: string
-  barbeiroNome: string
-  empresaNome?: string
-  tokenConfirmacao?: string
-  enviarLinkConfirmacao?: boolean
+interface AgendamentoConfirmacaoParams extends ConfirmacaoWhatsAppVars {
+  mensagemConfirmacaoWhatsApp?: string | null
 }
 
 export function buildAgendamentoConfirmacaoMessage({
-  clienteNome,
-  data,
-  horario,
-  duracaoMinutos,
-  servicoNome,
-  barbeiroNome,
-  empresaNome,
-  tokenConfirmacao,
-  enviarLinkConfirmacao = false,
+  mensagemConfirmacaoWhatsApp,
+  ...vars
 }: AgendamentoConfirmacaoParams): string {
-  const primeiroNome = clienteNome.trim().split(/\s+/)[0] || clienteNome
-  const intervalo = formatHorarioIntervalo(horario, duracaoMinutos)
-  const dataFormatada = formatDateBR(data)
-
-  const lines = [
-    `Olá ${primeiroNome}, tudo bem?`,
-    '',
-    'Gostaríamos de confirmar seu agendamento:',
-    '',
-    `Data: ${dataFormatada}`,
-    `Horário: ${intervalo}`,
-    `Serviço: ${servicoNome}`,
-    `Profissional: ${barbeiroNome}`,
-  ]
-
-  if (empresaNome?.trim()) {
-    lines.push('', empresaNome.trim())
-  }
-
-  if (enviarLinkConfirmacao && tokenConfirmacao) {
-    lines.push(
-      '',
-      'Para confirmar sua presença, acesse o link abaixo:',
-      buildConfirmacaoPublicUrl(tokenConfirmacao),
-    )
-  }
-
-  lines.push('', 'Qualquer dúvida, estamos à disposição!')
-
-  return lines.join('\n')
+  return renderConfirmacaoWhatsAppMessage(mensagemConfirmacaoWhatsApp, vars)
 }
 
 export function buildAgendamentoConfirmacaoWhatsAppUrl(

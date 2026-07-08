@@ -1,4 +1,5 @@
 import { apiClient } from '@/services/api/client'
+import { normalizeMensagemConfirmacaoForSave } from '@/utils/whatsappConfirmacaoTemplate'
 import type {
   EmpresaConfig,
   EmpresaConfigFormData,
@@ -16,6 +17,7 @@ interface EmpresaConfigApiDto {
   intervaloSlots: IntervaloSlot
   confirmacaoManual: boolean
   enviarLinkConfirmacaoWhatsApp: boolean
+  mensagemConfirmacaoWhatsApp?: string | null
   permitirMesmoDia: boolean
 }
 
@@ -31,6 +33,7 @@ function mapConfig(dto: EmpresaConfigApiDto): EmpresaConfig {
     intervaloSlots: Number(dto.intervaloSlots) as IntervaloSlot,
     confirmacaoManual: dto.confirmacaoManual,
     enviarLinkConfirmacaoWhatsApp: dto.enviarLinkConfirmacaoWhatsApp,
+    mensagemConfirmacaoWhatsApp: dto.mensagemConfirmacaoWhatsApp ?? null,
     permitirMesmoDia: dto.permitirMesmoDia,
   }
 }
@@ -65,14 +68,23 @@ export const empresaService = {
   async updatePreferencias(
     data: Pick<
       EmpresaConfigFormData,
-      'confirmacaoManual' | 'enviarLinkConfirmacaoWhatsApp' | 'permitirMesmoDia'
+      | 'confirmacaoManual'
+      | 'enviarLinkConfirmacaoWhatsApp'
+      | 'mensagemConfirmacaoWhatsApp'
+      | 'permitirMesmoDia'
     >,
   ) {
+    const payload = {
+      ...data,
+      mensagemConfirmacaoWhatsApp: normalizeMensagemConfirmacaoForSave(
+        data.mensagemConfirmacaoWhatsApp,
+      ),
+    }
     const updated = await apiClient<EmpresaConfigApiDto>(
       '/empresa/config/preferencias',
       {
         method: 'PUT',
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       },
     )
     return mapConfig(updated)
