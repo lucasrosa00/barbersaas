@@ -112,7 +112,7 @@ export function ListaEsperaPage() {
 
     return {
       clienteId: convertingItem.clienteId,
-      servicoId: convertingItem.servicoId,
+      servicoIds: [convertingItem.servicoId],
       barbeiroId: convertingItem.barbeiroId || undefined,
       data: convertingItem.dataSolicitada,
       horario,

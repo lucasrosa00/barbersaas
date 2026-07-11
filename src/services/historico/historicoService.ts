@@ -10,7 +10,7 @@ interface HistoricoApiDto {
   id: string
   clienteId: string
   clienteNome: string
-  servicoId: string
+  servicoIds: string[]
   servicoNome: string
   barbeiroId: string
   barbeiroNome: string
@@ -35,7 +35,7 @@ function mapHistorico(dto: HistoricoApiDto, empresaId: string): HistoricoAtendim
     empresaId,
     clienteId: dto.clienteId,
     clienteNome: dto.clienteNome,
-    servicoId: dto.servicoId,
+    servicoIds: dto.servicoIds,
     servicoNome: dto.servicoNome,
     barbeiroId: dto.barbeiroId,
     barbeiroNome: dto.barbeiroNome,

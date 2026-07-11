@@ -14,7 +14,7 @@ export interface Agendamento {
   empresaId: string
   clienteId: string
   barbeiroId: string
-  servicoId: string
+  servicoIds: string[]
   data: string
   horario: string
   duracaoMinutos: number

@@ -29,6 +29,12 @@ import { useAuth } from '@/hooks/useAuth'
 import { useBloqueiosPorData } from '@/hooks/useBloqueiosHorario'
 import { buildAgendamentoConfirmacaoWhatsAppUrl } from '@/utils/whatsapp'
 import { formatCurrency } from '@/utils/formatCurrency'
+import {
+  getServicosSelecionados,
+  joinServicosNomes,
+  sumServicosDuracao,
+  sumServicosValor,
+} from '@/utils/agendamentoServicos'
 
 const metodoPagamentoValues = METODOS_PAGAMENTO.map((m) => m.value) as [
   NonNullable<AgendamentoFormData['metodoPagamento']>,
@@ -88,7 +94,7 @@ export function AgendamentoForm({
         .object({
           clienteId: z.string().min(1, 'Selecione um cliente'),
           barbeiroId: z.string().min(1, labels.professional.selectRequired),
-          servicoId: z.string().min(1, 'Selecione um serviço'),
+          servicoIds: z.array(z.string()).min(1, 'Selecione ao menos um serviço'),
           data: z.string().min(1, 'Data é obrigatória'),
           horario: z.string().min(1, 'Horário é obrigatório'),
           duracaoMinutos: z.coerce
@@ -139,7 +145,10 @@ export function AgendamentoForm({
     [agendamentos, barbeiros, editingId],
   )
 
-  const servicoInicial = servicos.find((s) => s.id === defaultValues?.servicoId)
+  const servicosIniciais = getServicosSelecionados(
+    servicos,
+    defaultValues?.servicoIds ?? [],
+  )
 
   const {
     register,
@@ -153,14 +162,17 @@ export function AgendamentoForm({
     defaultValues: {
       clienteId: defaultValues?.clienteId ?? '',
       barbeiroId: defaultValues?.barbeiroId ?? '',
-      servicoId: defaultValues?.servicoId ?? '',
+      servicoIds: defaultValues?.servicoIds ?? [],
       data:
         defaultValues?.data !== undefined
           ? defaultValues.data
           : new Date().toISOString().split('T')[0],
       horario: defaultValues?.horario ?? '',
       duracaoMinutos:
-        defaultValues?.duracaoMinutos ?? servicoInicial?.duracaoMinutos ?? 30,
+        defaultValues?.duracaoMinutos ??
+        (servicosIniciais.length > 0
+          ? sumServicosDuracao(servicosIniciais)
+          : 30),
       valorComDesconto: defaultValues?.valorComDesconto ?? undefined,
       status: defaultValues?.status ?? 'agendado',
       metodoPagamento: defaultValues?.metodoPagamento,
@@ -168,7 +180,7 @@ export function AgendamentoForm({
   })
 
   const barbeiroId = watch('barbeiroId')
-  const servicoId = watch('servicoId')
+  const servicoIds = watch('servicoIds')
   const clienteId = watch('clienteId')
   const horario = watch('horario')
   const dataSelecionada = watch('data')
@@ -185,24 +197,28 @@ export function AgendamentoForm({
 
   const clienteSelecionado = clientes.find((c) => c.id === clienteId)
   const barbeiroSelecionado = barbeiros.find((b) => b.id === barbeiroId)
-  const servicoSelecionado = servicos.find((s) => s.id === servicoId)
+  const servicosSelecionados = getServicosSelecionados(servicos, servicoIds)
 
   const servicosFiltrados = servicos.filter(
     (s) => !barbeiroId || s.barbeirosDisponiveis.includes(barbeiroId),
   )
 
-  const previousServicoId = useRef(servicoId)
+  const previousServicoIds = useRef<string[]>(servicoIds)
 
   useEffect(() => {
-    if (!servicoSelecionado || servicoId === previousServicoId.current) return
+    if (servicosSelecionados.length === 0) return
 
-    setValue('duracaoMinutos', servicoSelecionado.duracaoMinutos)
+    const previousKey = previousServicoIds.current.join('|')
+    const currentKey = servicoIds.join('|')
+    if (currentKey === previousKey) return
+
+    setValue('duracaoMinutos', sumServicosDuracao(servicosSelecionados))
     setValue('valorComDesconto', undefined)
-    previousServicoId.current = servicoId
-  }, [servicoId, servicoSelecionado, setValue])
+    previousServicoIds.current = servicoIds
+  }, [servicoIds, servicosSelecionados, setValue])
 
   const horariosDisponiveis = useMemo(() => {
-    if (!barbeiroSelecionado || !servicoSelecionado || !dataSelecionada) return []
+    if (!barbeiroSelecionado || servicosSelecionados.length === 0 || !dataSelecionada) return []
     if (!duracaoMinutos || duracaoMinutos < 5) return []
 
     return getHorariosDisponiveis(
@@ -217,7 +233,7 @@ export function AgendamentoForm({
     )
   }, [
     barbeiroSelecionado,
-    servicoSelecionado,
+    servicosSelecionados,
     dataSelecionada,
     duracaoMinutos,
     agendamentos,
@@ -228,10 +244,14 @@ export function AgendamentoForm({
   ])
 
   useEffect(() => {
-    if (servicoId && !servicosFiltrados.some((s) => s.id === servicoId)) {
-      setValue('servicoId', '')
+    const validIds = servicoIds.filter((id) =>
+      servicosFiltrados.some((servico) => servico.id === id),
+    )
+
+    if (validIds.length !== servicoIds.length) {
+      setValue('servicoIds', validIds)
     }
-  }, [barbeiroId, servicosFiltrados, servicoId, setValue])
+  }, [barbeiroId, servicosFiltrados, servicoIds, setValue])
 
   useEffect(() => {
     if (!horario || horariosDisponiveis.length === 0) return
@@ -257,21 +277,31 @@ export function AgendamentoForm({
       ? formatHorarioIntervalo(horario, duracaoMinutos)
       : null
 
-  const duracaoPadraoServico = servicoSelecionado?.duracaoMinutos
+  const duracaoPadraoServicos =
+    servicosSelecionados.length > 0
+      ? sumServicosDuracao(servicosSelecionados)
+      : undefined
+  const valorPadraoServicos =
+    servicosSelecionados.length > 0 ? sumServicosValor(servicosSelecionados) : undefined
   const duracaoPersonalizada =
-    duracaoPadraoServico !== undefined && duracaoMinutos !== duracaoPadraoServico
+    duracaoPadraoServicos !== undefined && duracaoMinutos !== duracaoPadraoServicos
 
   const valorCobrado =
-    valorComDesconto !== undefined && valorComDesconto !== null && !Number.isNaN(Number(valorComDesconto))
+    valorComDesconto !== undefined &&
+    valorComDesconto !== null &&
+    !Number.isNaN(Number(valorComDesconto))
       ? Number(valorComDesconto)
-      : servicoSelecionado?.valor
+      : valorPadraoServicos
 
   const whatsappConfirmacaoUrl = useMemo(() => {
     if (!isEditing || !clienteSelecionado?.telefone || !horario || !dataSelecionada) {
       return null
     }
 
-    const servicoNome = servicoSelecionado?.nome ?? defaultValues?.servicoNome
+    const servicoNome =
+      servicosSelecionados.length > 0
+        ? joinServicosNomes(servicosSelecionados)
+        : defaultValues?.servicoNome
     const barbeiroNome = barbeiroSelecionado?.nome ?? defaultValues?.barbeiroNome
 
     if (!servicoNome || !barbeiroNome || !duracaoMinutos) return null
@@ -294,7 +324,7 @@ export function AgendamentoForm({
     horario,
     dataSelecionada,
     duracaoMinutos,
-    servicoSelecionado,
+    servicosSelecionados,
     barbeiroSelecionado,
     defaultValues?.servicoNome,
     defaultValues?.barbeiroNome,
@@ -390,19 +420,58 @@ export function AgendamentoForm({
         {...register('barbeiroId')}
       />
 
-      <Select
-        label="Serviço"
-        placeholder="Selecione o serviço"
-        options={servicosFiltrados.map((s) => ({
-          value: s.id,
-          label: `${s.nome} (${s.duracaoMinutos} min)`,
-        }))}
-        error={errors.servicoId?.message}
-        disabled={!barbeiroId}
-        {...register('servicoId')}
+      <Controller
+        name="servicoIds"
+        control={control}
+        render={({ field }) => (
+          <div className="space-y-1.5">
+            <span className="block text-sm font-medium text-neutral-600">Serviços</span>
+            {!barbeiroId ? (
+              <p className="rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-500">
+                {labels.professional.select} para ver os serviços disponíveis
+              </p>
+            ) : servicosFiltrados.length === 0 ? (
+              <p className="rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-500">
+                Nenhum serviço disponível para este profissional
+              </p>
+            ) : (
+              <div className="max-h-48 space-y-2 overflow-y-auto rounded-lg border border-neutral-300 bg-white p-3">
+                {servicosFiltrados.map((servico) => {
+                  const checked = field.value.includes(servico.id)
+
+                  return (
+                    <label
+                      key={servico.id}
+                      className="flex cursor-pointer items-start gap-2.5 rounded-md px-1 py-1 hover:bg-neutral-50"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={(event) => {
+                          const next = event.target.checked
+                            ? [...field.value, servico.id]
+                            : field.value.filter((id) => id !== servico.id)
+                          field.onChange(next)
+                        }}
+                        className="mt-0.5 h-4 w-4 rounded border-neutral-300 text-neutral-900"
+                      />
+                      <span className="text-sm text-neutral-800">
+                        {servico.nome} ({servico.duracaoMinutos} min ·{' '}
+                        {formatCurrency(servico.valor)})
+                      </span>
+                    </label>
+                  )
+                })}
+              </div>
+            )}
+            {errors.servicoIds?.message && (
+              <p className="text-xs text-red-600">{errors.servicoIds.message}</p>
+            )}
+          </div>
+        )}
       />
 
-      {servicoSelecionado && (
+      {servicosSelecionados.length > 0 && (
         <div className="space-y-1.5">
           <Input
             label="Duração do atendimento (min)"
@@ -414,26 +483,26 @@ export function AgendamentoForm({
           />
           <p className="text-xs text-neutral-500">
             {duracaoPersonalizada
-              ? `Padrão do serviço: ${duracaoPadraoServico} min`
-              : 'Vem do cadastro do serviço; altere se necessário para este cliente'}
+              ? `Padrão dos serviços: ${duracaoPadraoServicos} min`
+              : 'Soma das durações dos serviços; altere se necessário para este cliente'}
           </p>
         </div>
       )}
 
-      {servicoSelecionado && (
+      {servicosSelecionados.length > 0 && valorPadraoServicos !== undefined && (
         <div className="space-y-1.5">
           <Input
             label="Valor com desconto (opcional)"
             type="number"
             min={0}
             step={0.01}
-            placeholder={formatCurrency(servicoSelecionado.valor)}
+            placeholder={formatCurrency(valorPadraoServicos)}
             error={errors.valorComDesconto?.message}
             {...register('valorComDesconto')}
           />
           <p className="text-xs text-neutral-500">
-            Preço do serviço: {formatCurrency(servicoSelecionado.valor)} — deixe vazio
-            para usar o valor cadastrado ou informe 0 se não houve cobrança
+            Soma dos serviços: {formatCurrency(valorPadraoServicos)} — deixe vazio para
+            usar o valor total ou informe 0 se não houve cobrança
           </p>
         </div>
       )}
@@ -452,7 +521,7 @@ export function AgendamentoForm({
           )}
         />
 
-        {barbeiroSelecionado && servicoSelecionado && duracaoMinutos >= 5 ? (
+        {barbeiroSelecionado && servicosSelecionados.length > 0 && duracaoMinutos >= 5 ? (
           <Select
             label="Horário de início"
             options={horariosDisponiveis.map((h) => ({
@@ -477,8 +546,8 @@ export function AgendamentoForm({
       {intervaloPreview && (
         <p className="text-xs text-neutral-900">
           Duração: {duracaoMinutos} min
-          {duracaoPersonalizada && duracaoPadraoServico !== undefined
-            ? ` (padrão: ${duracaoPadraoServico} min)`
+          {duracaoPersonalizada && duracaoPadraoServicos !== undefined
+            ? ` (padrão: ${duracaoPadraoServicos} min)`
             : ''}{' '}
           · Intervalo {intervaloPreview}
           {valorCobrado !== undefined && (
@@ -487,11 +556,11 @@ export function AgendamentoForm({
               · Valor: {formatCurrency(valorCobrado)}
               {valorComDesconto !== undefined &&
                 valorComDesconto !== null &&
-                servicoSelecionado &&
-                Number(valorComDesconto) !== servicoSelecionado.valor && (
+                valorPadraoServicos !== undefined &&
+                Number(valorComDesconto) !== valorPadraoServicos && (
                   <span className="text-neutral-500">
                     {' '}
-                    (padrão: {formatCurrency(servicoSelecionado.valor)})
+                    (padrão: {formatCurrency(valorPadraoServicos)})
                   </span>
                 )}
             </>
@@ -500,7 +569,7 @@ export function AgendamentoForm({
       )}
 
       {barbeiroSelecionado &&
-        servicoSelecionado &&
+        servicosSelecionados.length > 0 &&
         duracaoMinutos >= 5 &&
         horariosDisponiveis.length === 0 && (
           <p className="text-xs text-neutral-700">
@@ -556,7 +625,7 @@ export function AgendamentoForm({
             isLoading={isSubmitting}
             disabled={
               !barbeiroSelecionado ||
-              !servicoSelecionado ||
+              servicosSelecionados.length === 0 ||
               duracaoMinutos < 5 ||
               horariosDisponiveis.length === 0
             }

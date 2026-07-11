@@ -99,10 +99,20 @@ export function AgendaGrid({
   const evaluateDrop = useCallback(
     (agendamento: AgendamentoEnriquecido, barbeiroId: string, horario: string) => {
       const barbeiro = barbeiros.find((b) => b.id === barbeiroId)
-      const servico = servicos.find((s) => s.id === agendamento.servicoId)
-
       if (!barbeiro) return false
-      if (!servico?.barbeirosDisponiveis.includes(barbeiroId)) return false
+
+      const servicosDoAgendamento = servicos.filter((servico) =>
+        agendamento.servicoIds.includes(servico.id),
+      )
+
+      if (servicosDoAgendamento.length !== agendamento.servicoIds.length) return false
+      if (
+        !servicosDoAgendamento.every((servico) =>
+          servico.barbeirosDisponiveis.includes(barbeiroId),
+        )
+      ) {
+        return false
+      }
       if (
         agendamento.barbeiroId === barbeiroId &&
         agendamento.horario === horario

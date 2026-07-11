@@ -9,7 +9,7 @@ interface DashboardApiResponse {
     clienteNome: string
     barbeiroId: string
     barbeiroNome: string
-    servicoId: string
+    servicoIds: string[]
     servicoNome: string
     data: string
     horario: string
@@ -45,7 +45,7 @@ function mapAgendamento(
     empresaId,
     clienteId: dto.clienteId,
     barbeiroId: dto.barbeiroId,
-    servicoId: dto.servicoId,
+    servicoIds: dto.servicoIds,
     data: dto.data,
     horario: dto.horario,
     status: dto.status,

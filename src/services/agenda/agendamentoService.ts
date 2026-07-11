@@ -12,7 +12,7 @@ interface AgendamentoApiDto {
   clienteNome: string
   barbeiroId: string
   barbeiroNome: string
-  servicoId: string
+  servicoIds: string[]
   servicoNome: string
   data: string
   horario: string
@@ -29,7 +29,7 @@ function mapAgendamento(dto: AgendamentoApiDto, empresaId: string): AgendamentoE
     empresaId,
     clienteId: dto.clienteId,
     barbeiroId: dto.barbeiroId,
-    servicoId: dto.servicoId,
+    servicoIds: dto.servicoIds,
     data: dto.data,
     horario: dto.horario,
     status: dto.status,
@@ -47,7 +47,7 @@ function toRequestBody(data: AgendamentoFormData) {
   return {
     clienteId: data.clienteId,
     barbeiroId: data.barbeiroId,
-    servicoId: data.servicoId,
+    servicoIds: data.servicoIds,
     data: data.data,
     horario: data.horario,
     status: data.status,

@@ -85,7 +85,7 @@ export function AgendaPage() {
   const [remarcarPrompt, setRemarcarPrompt] = useState<{
     clienteId: string
     barbeiroId: string
-    servicoId: string
+    servicoIds: string[]
     clienteNome: string
   } | null>(null)
 
@@ -251,7 +251,7 @@ export function AgendaPage() {
       setRemarcarPrompt({
         clienteId: data.clienteId,
         barbeiroId: data.barbeiroId,
-        servicoId: data.servicoId,
+        servicoIds: data.servicoIds,
         clienteNome,
       })
     }
@@ -269,7 +269,7 @@ export function AgendaPage() {
     setPrefilled({
       clienteId: remarcarPrompt.clienteId,
       barbeiroId: remarcarPrompt.barbeiroId,
-      servicoId: remarcarPrompt.servicoId,
+      servicoIds: remarcarPrompt.servicoIds,
       status: 'agendado',
       data: '',
       horario: '',
@@ -302,7 +302,7 @@ export function AgendaPage() {
       await updateAgendamento(pendingMove.agendamento.id, {
         clienteId: pendingMove.agendamento.clienteId,
         barbeiroId: pendingMove.barbeiroId,
-        servicoId: pendingMove.agendamento.servicoId,
+        servicoIds: pendingMove.agendamento.servicoIds,
         data: pendingMove.agendamento.data,
         horario: pendingMove.horario,
         duracaoMinutos: pendingMove.agendamento.duracaoMinutos,

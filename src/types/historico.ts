@@ -6,7 +6,7 @@ export interface HistoricoAtendimento {
   empresaId: string
   clienteId: string
   clienteNome: string
-  servicoId: string
+  servicoIds: string[]
   servicoNome: string
   barbeiroId: string
   barbeiroNome: string
